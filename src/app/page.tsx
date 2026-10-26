@@ -32,25 +32,20 @@ export default function Screen01BrandInputPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between bg-white text-slate-900 overflow-hidden font-sans">
-      {/* Background Soft Pastel Ambient Gradients */}
-      <div
-        className="pointer-events-none fixed inset-0 overflow-hidden -z-10 select-none"
-        aria-hidden="true"
-      >
-        {/* Top-left very faint lavender glow */}
-        <div className="absolute -top-32 -left-32 h-[34rem] w-[34rem] rounded-full bg-gradient-to-br from-purple-100/35 via-pink-50/20 to-transparent blur-3xl" />
-
-        {/* Bottom-left soft pale blue / periwinkle glow */}
-        <div className="absolute -bottom-36 -left-20 h-[36rem] w-[36rem] rounded-full bg-gradient-to-tr from-sky-200/40 via-indigo-100/30 to-transparent blur-3xl" />
-
-        {/* Right side soft pastel blush pink glow */}
-        <div className="absolute top-1/4 -right-28 h-[40rem] w-[40rem] rounded-full bg-gradient-to-bl from-rose-200/50 via-pink-100/35 to-transparent blur-3xl" />
-
-        {/* Bottom-right faint warm coral accent */}
-        <div className="absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-gradient-to-t from-pink-100/30 via-rose-50/20 to-transparent blur-2xl" />
-      </div>
-
+    <div
+      className="relative min-h-screen w-full flex flex-col justify-between text-slate-900 overflow-hidden font-sans"
+      style={{
+        backgroundColor: "#ffffff",
+        backgroundImage: `
+          radial-gradient(circle at 0% 100%, rgba(186, 214, 255, 0.75) 0%, rgba(205, 228, 255, 0.45) 25%, transparent 55%),
+          radial-gradient(circle at 100% 55%, rgba(255, 195, 220, 0.8) 0%, rgba(255, 215, 232, 0.45) 30%, transparent 60%),
+          radial-gradient(circle at 0% 25%, rgba(245, 215, 255, 0.65) 0%, rgba(250, 230, 255, 0.35) 25%, transparent 50%),
+          radial-gradient(circle at 95% 10%, rgba(255, 225, 235, 0.55) 0%, transparent 40%)
+        `,
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+      }}
+    >
       {/* Top Bar: Back Arrow + Gradient Progress Bar */}
       <div className="w-full pt-8 sm:pt-10 px-4 sm:px-6">
         <div className="w-full max-w-[580px] mx-auto flex items-center justify-center gap-3.5">
