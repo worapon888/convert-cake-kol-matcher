@@ -11,9 +11,6 @@ import {
   UnsafeUrlError,
 } from "@/lib/brand";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export interface BrandAnalyzeApiErrorResponse {
   ok: false;
   error: {

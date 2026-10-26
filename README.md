@@ -4,10 +4,11 @@
 
 > **Assessment Progress Notice (7-Day AI Engineer Assessment — Convert Cake)**
 >
-> - **Step 1 (Completed):** Project scaffold, Next.js App Router, strict TypeScript, ESLint, Prettier, Husky pre-commit hooks, and architecture/evaluation docs.
-> - **Step 2 (Completed):** Real Apify (`clockworks/tiktok-scraper`) Zod schemas, data normalization (`TikTokVideo`, `TikTokCreator`, `CreatorMetrics`), pure metric calculation functions, fixture loaders, guarded Apify client module, and unit tests.
-> - **Step 3 (Completed):** AI Brand Analyzer with SSRF-protected website content extraction, best-effort Facebook Page extraction, manual description fallback, OpenAI Responses API + Structured Outputs (`BrandProfileSchema`), `POST /api/brands/analyze` endpoint, minimal editable Brand Profile test UI, and unit tests.
-> - **Pending (`TODO`):** TikTok KOL Matching engine, composite ranking, and final recommendation UI (Step 4) are **not** implemented yet.
+> - **Step 1 (Completed):** Project scaffold, Next.js App Router, strict TypeScript, ESLint, Prettier, Husky pre-commit hooks.
+> - **Step 2 (Completed — `f7681f6`):** Real Apify (`clockworks/tiktok-scraper`) Zod schemas, data normalization (`TikTokVideo`, `TikTokCreator`, `CreatorMetrics`), pure metric calculation functions, fixture loaders, and guarded Apify client module.
+> - **Step 3 (Completed — `530df09`):** AI Brand Analyzer with SSRF-protected website content extraction, best-effort Facebook Page extraction, manual description fallback, OpenAI Responses API + Structured Outputs (`BrandProfileSchema`), and `POST /api/brands/analyze`.
+> - **Step 4 (Completed):** AI TikTok KOL Matching & Ranking Engine with deterministic Creator Qualification, OpenAI Content Fit Evaluator with evidence verification, pure TypeScript weighted scoring (`50/20/20/10`), missing-data coverage policy, single-video sample safeguards, `POST /api/matching/evaluate`, human-labeled benchmark cases, and `50/50` passing unit tests.
+> - **Pending (`TODO` — Step 5):** Final polished production dashboard, advanced filtering, analytics charts, and CSV export.
 
 ---
 
@@ -15,223 +16,148 @@
 
 1. [Project Overview & Business Problem](#1-project-overview--business-problem)
 2. [Features & Implementation Status](#2-features--implementation-status)
-3. [Technology Stack](#3-technology-stack)
-4. [System Architecture & Data Flow](#4-system-architecture--data-flow)
-5. [Step 3 — AI Brand Analyzer Architecture & Schema](#5-step-3--ai-brand-analyzer-architecture--schema)
+3. [System Architecture & Matching Pipeline](#3-system-architecture--matching-pipeline)
+4. [Step 4 — KOL Matching & Ranking Engine Specification](#4-step-4--kol-matching--ranking-engine-specification)
+5. [Step 3 — AI Brand Analyzer Specification](#5-step-3--ai-brand-analyzer-specification)
 6. [Step 2 — TikTok Data Schema, Field Mapping & Metric Formulas](#6-step-2--tiktok-data-schema-field-mapping--metric-formulas)
-7. [Prerequisites & Installation Instructions](#7-prerequisites--installation-instructions)
-8. [Environment Variable Configuration](#8-environment-variable-configuration)
-9. [Local Development & Testing Commands](#9-local-development--testing-commands)
-10. [Manual Integration Test Procedure (Controlled Live Test)](#10-manual-integration-test-procedure-controlled-live-test)
-11. [Security Considerations, Facebook Extraction & Dataset Limitations](#11-security-considerations-facebook-extraction--dataset-limitations)
-12. [References & External Resources](#12-references--external-resources)
+7. [API Reference (`POST /api/brands/analyze` & `POST /api/matching/evaluate`)](#7-api-reference-post-apibrandsanalyze--post-apimatchingevaluate)
+8. [Prerequisites, Installation & Environment Variables](#8-prerequisites-installation--environment-variables)
+9. [Testing, Evaluation Benchmark & Controlled Live Execution](#9-testing-evaluation-benchmark--controlled-live-execution)
+10. [Known Limitations, Potential Biases & Security Safeguards](#10-known-limitations-potential-biases--security-safeguards)
 
 ---
 
 ## 1. Project Overview & Business Problem
 
-Brands and agencies operating in Thailand's TikTok ecosystem face major bottlenecks when selecting Key Opinion Leaders (KOLs):
+Marketing teams and agencies in Thailand face three recurring challenges when selecting TikTok Key Opinion Leaders (KOLs):
 
-- **Unstructured Brand Briefs:** Marketing teams often start with only a brand URL or rough product page and need structured campaign criteria and focused Thai TikTok discovery keywords.
-- **Single-Video & Vanity Metric Traps:** Follower counts and isolated viral posts frequently mask low median engagement or inconsistent view performance.
-- **Incomplete Public Scrape Data:** Third-party scrapers return nested, nullable fields without audience demographics, while social platforms like Facebook restrict unauthenticated scraping.
+1. **Unstructured Brand Briefs:** Campaign managers start from a brand URL or product page and need structured positioning criteria and Thai TikTok discovery keywords.
+2. **Noisy Candidate Pools:** Search results mix independent creators with official brand storefronts (e.g., `@remo.thailand`, `@etudethailand`), retail curators (`@thedailypal`), creators who do not accept sponsored work (`"ไม่รับงานรีวิว"`), or non-Thai language creators (`textLanguage="my"`).
+3. **Single-Video & Vanity Metric Traps:** Raw follower counts and single viral videos can distort rankings if treated as representative creator-level averages.
 
-**Convert Cake KOL Matcher** solves this through a transparent, step-by-step pipeline:
-
-1. **AI Brand Analyzer (Step 3 — Implemented):** Extracts public signals from a business website (plus best-effort Facebook metadata or manual description fallback) and uses **OpenAI Responses API with Structured Outputs** to generate an editable `BrandProfile` separating observed source facts from inferred recommendations.
-2. **TikTok Data Normalization & Creator Metrics (Step 2 — Implemented):** Validates and normalizes Apify `clockworks/tiktok-scraper` datasets into `TikTokVideo`, `TikTokCreator`, and `CreatorMetrics` with explicit single-video sample guards.
-3. **KOL Matching & Ranking Engine (Step 4 — `TODO`):** Matches the reviewed `BrandProfile` against candidate TikTok creators.
+**Convert Cake KOL Matcher** addresses these challenges by separating **deterministic qualification and quantitative scoring** (in pure TypeScript) from **semantic content fit evaluation** (via OpenAI Structured Outputs with strict evidence verification).
 
 ---
 
 ## 2. Features & Implementation Status
 
-| Feature / Component                                                | Status        | Module / Location                                                                                                        |
-| ------------------------------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Next.js App Router + TypeScript Strict Scaffold**                | `Implemented` | [`src/app/`](src/app/), [`tsconfig.json`](tsconfig.json)                                                                 |
-| **Code Quality & Husky Pre-Commit Hooks**                          | `Implemented` | [`.husky/pre-commit`](.husky/pre-commit), [`eslint.config.mjs`](eslint.config.mjs)                                       |
-| **Apify `clockworks/tiktok-scraper` Zod Schemas & Normalizer**     | `Implemented` | [`src/lib/tiktok/schemas.ts`](src/lib/tiktok/schemas.ts), [`src/lib/tiktok/normalizer.ts`](src/lib/tiktok/normalizer.ts) |
-| **Pure Creator Metric Calculation Functions**                      | `Implemented` | [`src/lib/tiktok/metrics.ts`](src/lib/tiktok/metrics.ts)                                                                 |
-| **Reusable Apify Integration Client (Paid-Run Guarded)**           | `Implemented` | [`src/lib/apify/tiktok-scraper.ts`](src/lib/apify/tiktok-scraper.ts)                                                     |
-| **SSRF-Protected Website & Best-Effort Facebook Extractor**        | `Implemented` | [`src/lib/brand/ssrf.ts`](src/lib/brand/ssrf.ts), [`src/lib/brand/extractor.ts`](src/lib/brand/extractor.ts)             |
-| **Server-Side OpenAI Client (Responses API + Structured Outputs)** | `Implemented` | [`src/lib/ai/openai-client.ts`](src/lib/ai/openai-client.ts)                                                             |
-| **Brand Profile Zod Schema & AI Brand Analyzer Service**           | `Implemented` | [`src/lib/brand/schemas.ts`](src/lib/brand/schemas.ts), [`src/lib/brand/analyzer.ts`](src/lib/brand/analyzer.ts)         |
-| **Brand Analysis API Route (`POST /api/brands/analyze`)**          | `Implemented` | [`src/app/api/brands/analyze/route.ts`](src/app/api/brands/analyze/route.ts)                                             |
-| **Minimal Editable Brand Profile Test Interface**                  | `Implemented` | [`src/components/brand/BrandAnalyzerTestBench.tsx`](src/components/brand/BrandAnalyzerTestBench.tsx)                     |
-| **Automated Unit Test Suite (`35` tests)**                         | `Implemented` | [`tests/unit/`](tests/unit/)                                                                                             |
-| **TikTok KOL Matching, Ranking & Final Recommendation UI**         | `TODO`        | Planned for Step 4                                                                                                       |
+| Step       | Component                                                                   | Status        | Module / Location                                                                                                            |
+| ---------- | --------------------------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Step 1** | Next.js App Router, Strict TS, ESLint, Prettier, Husky                      | `Implemented` | [`package.json`](package.json), [`.husky/pre-commit`](.husky/pre-commit)                                                     |
+| **Step 2** | Apify `clockworks/tiktok-scraper` Schemas, Normalizer & Pure Metrics        | `Implemented` | [`src/lib/tiktok/`](src/lib/tiktok/), [`src/lib/apify/tiktok-scraper.ts`](src/lib/apify/tiktok-scraper.ts)                   |
+| **Step 3** | SSRF Guard, Website/FB Extractor, OpenAI Brand Analyzer & API               | `Implemented` | [`src/lib/brand/`](src/lib/brand/), [`src/app/api/brands/analyze/route.ts`](src/app/api/brands/analyze/route.ts)             |
+| **Step 4** | Creator Qualification, AI Content Fit Evaluator, Deterministic Scorer & API | `Implemented` | [`src/lib/matching/`](src/lib/matching/), [`src/app/api/matching/evaluate/route.ts`](src/app/api/matching/evaluate/route.ts) |
+| **Step 4** | Minimal Step 3 + Step 4 Test Interface                                      | `Implemented` | [`src/components/brand/BrandAnalyzerTestBench.tsx`](src/components/brand/BrandAnalyzerTestBench.tsx)                         |
+| **Step 5** | Final Production Dashboard, Filters & Export                                | `TODO`        | Planned for Step 5                                                                                                           |
 
 ---
 
-## 3. Technology Stack
+## 3. System Architecture & Matching Pipeline
 
-| Layer                 | Technology                                                                                    | Version                | Status        |
-| --------------------- | --------------------------------------------------------------------------------------------- | ---------------------- | ------------- |
-| **Framework**         | [Next.js](https://nextjs.org/) (App Router)                                                   | `16.4.3`               | `Implemented` |
-| **UI Library**        | [React](https://react.dev/)                                                                   | `19.3.0`               | `Implemented` |
-| **Language**          | [TypeScript](https://www.typescriptlang.org/) (`strict: true`)                                | `5.9.3`                | `Implemented` |
-| **AI SDK**            | [OpenAI Node.js SDK](https://github.com/openai/openai-node) (Responses API + `zodTextFormat`) | `7.43.0`               | `Implemented` |
-| **Schema Validation** | [Zod](https://zod.dev/)                                                                       | `4.6.7`                | `Implemented` |
-| **Unit Testing**      | [Vitest](https://vitest.dev/)                                                                 | `5.0.5`                | `Implemented` |
-| **Styling**           | [Tailwind CSS](https://tailwindcss.com/)                                                      | `4.3.3`                | `Implemented` |
-| **Data Source Actor** | Apify `clockworks/tiktok-scraper`                                                             | REST API v2 + Fixtures | `Implemented` |
+See [`docs/architecture.md`](docs/architecture.md) for the complete system architecture.
 
----
-
-## 4. System Architecture & Data Flow
-
-See [`docs/architecture.md`](docs/architecture.md) for the complete architectural specification.
-
-```mermaid
-flowchart TD
-    Input["Brand Input (UI / API)\nwebsiteUrl, facebookPageUrl?, manualDescription?"] --> SSRF["SSRF Guard & URL Validator\n(src/lib/brand/ssrf.ts)"]
-    SSRF --> Extractor["Public Content Extractor\n(Website HTML + Best-Effort FB + Manual Fallback)"]
-    Extractor --> Delimiter["Untrusted Content Delimiter\n(<untrusted_website_data>)"]
-    Delimiter --> OpenAI["OpenAI Responses API\nclient.responses.parse + zodTextFormat(BrandProfileSchema)"]
-    OpenAI --> Editor["Editable Brand Profile UI\n(Review fields & Thai TikTok keywords)"]
-    Editor --> FutureMatch["TODO Step 4: KOL Matching Engine"]
+```text
+BrandProfile (Step 3)  +  Normalized TikTok Dataset (Step 2)
+                             |
+                             v
+            1. Creator Deduplication & Qualification
+               (src/lib/matching/qualification.ts)
+               -> Separates `excluded` (brand accounts / review refusals)
+                  from `eligible` and `needs_review`
+                             |
+                             v
+            2. AI Content Relevance Evaluation
+               (src/lib/matching/content-evaluator.ts)
+               -> OpenAI Responses API + Structured Outputs (or `fixture_mock`)
+               -> Verifies cited videoId / videoUrl against actual input
+                             |
+                             v
+            3. Deterministic Score Calculation
+               (src/lib/matching/scoring.ts)
+               -> 50% Content Fit | 20% Market Fit | 20% Performance Fit | 10% Suitability
+               -> Applies 0.75x single-video provisional cap & missing-data coverage factor
+                             |
+                             v
+            4. Deterministic Ranking + Evidence + Confidence
+               (src/lib/matching/engine.ts)
+               -> Returns `recommendations` + auditable `excludedCreators`
 ```
 
 ---
 
-## 5. Step 3 — AI Brand Analyzer Architecture & Schema
+## 4. Step 4 — KOL Matching & Ranking Engine Specification
 
-### 5.1 Architecture Overview
+### 4.1 Deterministic Creator Qualification (`src/lib/matching/qualification.ts`)
 
-1. **SSRF Protection (`src/lib/brand/ssrf.ts`):** Validates URLs before any network call and on every redirect hop (`redirect: "manual"`, max 3 hops). Blocks `localhost`, loopback (`127.0.0.0/8`, `::1`), RFC1918 private IPs (`10/8`, `172.16/12`, `192.168/16`), link-local/cloud metadata (`169.254.169.254`, `metadata.google.internal`), internal suffixes (`.local`, `.internal`), and DNS responses resolving to private IPs.
-2. **Website & Facebook Extractor (`src/lib/brand/extractor.ts`):**
-   - Extracts website `<title>`, `meta[name="description"]`, `og:site_name`, headings (`h1`–`h3`), about/brand positioning sections, product/service descriptions, and up to 2 relevant same-origin subpages (`/about`, `/products`, etc.) with an `8s` timeout and `512 KB` response size limit.
-   - Performs best-effort OpenGraph metadata extraction for Facebook Page URLs, detecting login walls and anti-scraping challenges gracefully and reporting explicit warnings.
-   - Falls back to `manualDescription` if external sources are inaccessible.
-3. **Reusable OpenAI Client (`src/lib/ai/openai-client.ts`):**
-   - Uses the official `openai` SDK's `client.responses.parse` with `zodTextFormat(BrandProfileSchema, "brand_profile")`.
-   - Reads `OPENAI_API_KEY` and `OPENAI_MODEL` (default `gpt-4o-mini`) from server environment variables and verifies Structured Outputs compatibility (`doesModelSupportStructuredOutputs`).
+Evaluates each deduplicated creator before AI scoring and returns `status` (`eligible` | `needs_review` | `excluded`), `accountType` (`individual_creator` | `brand_account` | `unknown`), `collaborationAvailability` (`open_to_collab` | `restricted` | `unknown`), `marketRelevance` (`relevant` | `uncertain` | `not_observed`), `reasonCodes`, `evidence`, and `manualReviewRequired`:
 
-### 5.2 Brand Profile Schema (`BrandProfileSchema`)
+- **Brand-Owned Account Detection (`excluded`):**
+  - Never inferred from `isAd` (`@etudethailand` has `isAd=false` yet is an official brand account, while individual creators like `@zzdaozz` have `isAd=true`).
+  - Uses explicit profile declarations (`"ช่องบริษัท"`, `"Official TikTok"`, `"OFFICIAL STORE"`, or manual override) to classify `accountType: "brand_account"` and exclude from independent creator rankings while retaining in `excludedCreators`.
+  - Ambiguous retail/importer/curator profiles (`@thedailypal`, `@thirisxstore`) are marked `needs_review` with `AMBIGUOUS_STORE_OR_CURATOR_HANDLE`.
+- **Collaboration Restrictions (`excluded` vs. `open_to_collab` vs. `unknown`):**
+  - Profiles explicitly refusing paid reviews (`"ไม่รับงานรีวิว"`, `"งดรับงาน"`, `"ไม่รับสปอน"`) are classified as `restricted` and `excluded`.
+  - Profiles with explicit work contact (`"ติดต่องาน"`, `"For work"`, `"Working ID line"`) are classified as `open_to_collab`.
+  - Profiles with empty/null bio (`@lsabella5733`) or no collaboration statement are classified as `unknown` (`needs_review`) — never assumed open to collaboration.
+- **Thai Market Relevance:**
+  - Evaluates Thai script (`[\u0E00-\u0E7F]`) in captions, hashtags, and bios alongside `textLanguage`.
+  - Treats language as a content-level market signal, **never** verified follower geography.
+  - Non-Thai or uncertain language profiles (`@honestglowup5` with `textLanguage="my"`, `@nnampunnn` with `textLanguage="un"`) are marked `uncertain` / `not_observed` (`needs_review`), not silently fabricated or auto-excluded.
 
-Defined in [`src/lib/brand/schemas.ts`](src/lib/brand/schemas.ts):
+### 4.2 OpenAI Content Fit Evaluator & Evidence Verification (`src/lib/matching/content-evaluator.ts`)
 
-| Field                            | Type                     | Description                                                                                                                |
-| -------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `brandName`                      | `string \| null`         | Brand name if supported by source text, otherwise `null`                                                                   |
-| `brandDescription`               | `string \| null`         | Concise summary of the brand and its value proposition                                                                     |
-| `industry`                       | `string \| null`         | Primary industry vertical                                                                                                  |
-| `productCategories`              | `string[]`               | Product or service categories (`[]` if unsupported)                                                                        |
-| `keyProductsOrServices`          | `string[]`               | Specific hero SKUs or services mentioned in sources                                                                        |
-| `targetAudienceDescription`      | `string \| null`         | Distinguishes observed audience facts from inferred suitability; never fabricates verified demographics                    |
-| `targetMarket`                   | `string \| null`         | Target geographic market (defaults to `"Thailand"`)                                                                        |
-| `brandTone`                      | `string[]`               | Observed or recommended brand voice traits                                                                                 |
-| `contentThemes`                  | `string[]`               | Recommended content pillars for creator collaborations                                                                     |
-| `idealCreatorCharacteristics`    | `string[]`               | Traits of ideal TikTok creators for this brand                                                                             |
-| `excludedCreatorCharacteristics` | `string[]`               | Creator traits or content styles to avoid                                                                                  |
-| `suggestedTikTokSearchKeywords`  | `string[]`               | Focused list of 4–7 editable Thai TikTok search phrases when `targetMarket` is Thailand                                    |
-| `sourceReferences`               | `BrandSourceReference[]` | Provenance links (`website`, `facebook`, `manual`) and summary of extracted facts                                          |
-| `missingInformation`             | `string[]`               | Explicit indicators of inaccessible sources or missing brand details                                                       |
-| `confidenceNotes`                | `BrandConfidenceNotes`   | Separates `observedFacts` from `inferredRecommendations`, plus `overallConfidence` (`high`/`medium`/`low`) and `rationale` |
+- Uses `client.responses.parse` + `zodTextFormat(CreatorContentEvaluationSchema, "creator_content_evaluation")`.
+- Evaluates 4 rubric dimensions (`categoryRelevanceScore`, `productRelevanceScore`, `contentStyleScore`, `marketFitScore`), plus `strengths`, `concerns`, `explanation`, `supportingEvidence`, `missingEvidence`, and `confidenceLevel`.
+- **Anti-Hallucination Evidence Guard (`validateAndSanitizeContentEvaluation`):** Validates every `supportingEvidence` item's `videoId` and `videoUrl` against the creator's actual sampled videos. Any unsupported reference is stripped with an explicit warning.
+- **No Vision / Transcript Usage:** Evaluates strictly public profile metadata, bios, captions, and hashtags without `aiVideoDescription`, video downloads, or transcripts.
 
-### 5.3 API Contract (`POST /api/brands/analyze`)
+### 4.3 Deterministic Scoring Formula & Missing-Data Policy (`src/lib/matching/scoring.ts`)
 
-**Request Body:**
+OpenAI evaluates semantic relevance; **pure TypeScript** computes all normalized component scores and the final weighted ranking score.
 
-```json
-{
-  "websiteUrl": "https://example-brand.co.th",
-  "facebookPageUrl": "https://www.facebook.com/examplebrand",
-  "manualDescription": "Optional fallback description if the website is blocked or under construction.",
-  "targetMarket": "Thailand"
-}
-```
+#### Initial MVP Weights (Configurable)
 
-**Success Response (`200 OK`):**
+| Dimension                                    | Default Weight ($w_d$) | Source & Formula                                                                                                     |
+| -------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Content Fit ($S\_{\text{content}}$)**      | `50%` (`0.50`)         | $0.40 \cdot \text{CategoryRelevance} + 0.35 \cdot \text{ProductRelevance} + 0.25 \cdot \text{ContentStyle}$          |
+| **Market Fit ($S\_{\text{market}}$)**        | `20%` (`0.20`)         | $0.50 \cdot S_{\text{marketSignal}} + 0.50 \cdot S_{\text{aiMarketFit}}$ (`null` if unobserved)                      |
+| **Performance Fit ($S\_{\text{perf}}$)**     | `20%` (`0.20`)         | $\alpha_{\text{sample}} \cdot (0.60 \cdot S_{\text{ER}} + 0.40 \cdot S_{\text{views}})$ (`null` if views/ER missing) |
+| **Creator Suitability ($S\_{\text{suit}}$)** | `10%` (`0.10`)         | `95` (`open_to_collab` creator), `70` (handle ambiguity), `45` (unconfirmed), `null` (missing bio)                   |
 
-```json
-{
-  "ok": true,
-  "data": {
-    "brandProfile": {
-      "brandName": "Lumina Skin Thailand",
-      "brandDescription": "...",
-      "industry": "Beauty & Personal Care (Skincare / Dermo-cosmetics)",
-      "productCategories": ["Facial Serum", "Sunscreen / UV Protection"],
-      "keyProductsOrServices": ["Lumina Cica-Ceramide Barrier Serum"],
-      "targetAudienceDescription": "Observed source facts: ...",
-      "targetMarket": "Thailand",
-      "brandTone": ["Trustworthy & Science-Backed"],
-      "contentThemes": ["Skin barrier repair and calming redness"],
-      "idealCreatorCharacteristics": [
-        "Thai skincare creators who demonstrate real product textures"
-      ],
-      "excludedCreatorCharacteristics": [
-        "Creators making exaggerated medical cure claims"
-      ],
-      "suggestedTikTokSearchKeywords": [
-        "รีวิวสกินแคร์ผิวแพ้ง่าย",
-        "เซรั่มเสริมเกราะป้องกันผิว",
-        "กันแดดเนื้อเซรั่มคนเป็นสิว"
-      ],
-      "sourceReferences": [
-        {
-          "url": "https://lumina-skincare-th.example.com/",
-          "sourceType": "website",
-          "title": "Lumina Skin Thailand | เวชสำอางเพื่อผิวแพ้ง่ายและเป็นสิวง่าย",
-          "extractedFactsSummary": "..."
-        }
-      ],
-      "missingInformation": [
-        "Facebook Page content was restricted or inaccessible without authentication."
-      ],
-      "confidenceNotes": {
-        "observedFacts": ["Brand name is Lumina Skin Thailand."],
-        "inferredRecommendations": ["Suggested Thai TikTok search phrases..."],
-        "overallConfidence": "high",
-        "rationale": "..."
-      }
-    },
-    "extractionStatus": {
-      "website": {
-        "sourceType": "website",
-        "requestedUrl": "https://lumina-skincare-th.example.com",
-        "normalizedUrl": "https://lumina-skincare-th.example.com/",
-        "status": "success",
-        "extractedTitle": "Lumina Skin Thailand | เวชสำอางเพื่อผิวแพ้ง่ายและเป็นสิวง่าย",
-        "visitedUrls": ["https://lumina-skincare-th.example.com/"],
-        "warning": null
-      },
-      "facebook": {
-        "sourceType": "facebook",
-        "requestedUrl": "https://www.facebook.com/luminaskincareth",
-        "normalizedUrl": "https://www.facebook.com/luminaskincareth",
-        "status": "restricted",
-        "extractedTitle": null,
-        "visitedUrls": ["https://www.facebook.com/luminaskincareth"],
-        "warning": "Facebook Page public content is restricted by login/authentication walls..."
-      },
-      "manualDescriptionProvided": false
-    },
-    "warnings": [
-      "Facebook Page public content is restricted by login/authentication walls..."
-    ],
-    "missingInformation": [
-      "Facebook Page content was restricted or inaccessible without authentication."
-    ],
-    "modelUsed": "gpt-4o-mini",
-    "analyzedAt": "2026-10-26T13:50:00.000Z"
-  }
-}
-```
+#### Outlier-Resistant Performance Subscores & Single-Video Reliability Cap
 
-**Error Response (`400` / `422` / `429` / `502` / `503`):**
+1. **Log-Saturating Engagement Score ($S\_{\text{ER}} \in [0, 100]$):**
+   $$S_{\text{ER}} = \min\left(100, \max\left(0, \frac{\ln(1 + 100 \cdot \text{ER})}{\ln(1 + 15)} \times 100\right)\right)$$
+   Prevents extreme single-post viral engagement (e.g., `21%`) from linearly dwarfing normal strong engagement (`3%–8%`).
+2. **Log10 View Reach Score ($S\_{\text{views}} \in [0, 100]$):**
+   $$S_{\text{views}} = \min\left(100, \max\left(0, \frac{\log_{10}(\max(\text{medianViews}, 100)) - 2}{\log_{10}(5,000,000) - 2} \times 100\right)\right)$$
+   Uses `medianViews` (never raw follower count as a linear factor).
+3. **Single-Video Provisional Cap ($\alpha\_{\text{sample}}$):**
+   Because every creator in the current 10-video fixture has only `1` sampled video (`sampledVideosCount = 1`), $\alpha_{\text{sample}} = 0.75$ (`isProvisionalSingleVideo = true`, compared to `0.88` for 2 videos and `1.00` for $\ge 3$ videos), and overall `confidenceLevel` is capped at `"medium"`.
 
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "INSUFFICIENT_BRAND_SOURCES",
-    "message": "Unable to extract public brand information from the provided URL(s), and no manual brand description was provided...",
-    "warnings": ["Website could not be accessed..."]
-  }
-}
-```
+#### Missing-Data Policy
+
+- Missing dimensions remain `null` in `scoreBreakdown` and are listed in `missingComponents` (never treated as `0` and never fabricated).
+- Let $O = \{ d \mid S_d \neq \text{null} \}$ and $\text{Coverage} = \sum_{d \in O} w_d$:
+  $$\text{RawWeightedScore} = \frac{\sum_{d \in O} w_d S_d}{\text{Coverage}}, \quad \text{FinalMatchScore} = \text{RawWeightedScore} \times (0.85 + 0.15 \cdot \text{Coverage})$$
+- This ensures a creator with missing metrics is neither penalized as `0` nor ranked with the same certainty as a creator with `100%` data coverage.
+
+#### Deterministic Tie-Breaking Order
+
+1. `matchScore` descending
+2. `scoreBreakdown.contentFitScore` descending
+3. `scoreBreakdown.observedWeightCoverage` descending
+4. `creatorId` lexical ascending
+
+---
+
+## 5. Step 3 — AI Brand Analyzer Specification
+
+Implemented in [`src/lib/brand/`](src/lib/brand/) and `POST /api/brands/analyze`:
+
+- Extracts public website signals (`<title>`, meta description, headings, about/positioning snippets, product/service snippets, and up to 2 relevant same-origin pages) with SSRF protection (`src/lib/brand/ssrf.ts`).
+- Performs best-effort OpenGraph extraction on optional Facebook Page URLs and falls back to `manualDescription` when external pages are blocked.
+- Uses OpenAI Responses API (`client.responses.parse`) + `zodTextFormat(BrandProfileSchema, "brand_profile")`.
 
 ---
 
@@ -239,110 +165,140 @@ Defined in [`src/lib/brand/schemas.ts`](src/lib/brand/schemas.ts):
 
 Implemented in [`src/lib/tiktok/`](src/lib/tiktok/):
 
-- **Field Mapping (`clockworks/tiktok-scraper`):**
-  - `id` → `videoId`
-  - `text` → `caption`
-  - `webVideoUrl` → `videoUrl`
-  - `authorMeta.id` → `creatorId` (fallback to `authorMeta.name` / `username` when missing)
-  - `authorMeta.name` → `username`
-  - `authorMeta.profileUrl` → `profileUrl`
-  - `authorMeta.fans` → `followers`
-  - `playCount` → `views`
-  - `diggCount` → `likes`
-  - `commentCount` → `comments`
-  - `shareCount` → `shares`
-  - `createTimeISO` → `publishedAt`
-  - `hashtags[].name` → `hashtags`
-- **Metric Formulas:**
-  - **Engagement Rate by Views:** `(likes + comments + shares) / views` (`null` if missing or `views <= 0`)
-  - **Median Views:** Middle element (odd) or average of two middle elements (even) of sorted non-null `views`
-  - **Average Engagement Rate:** Arithmetic mean of valid video engagement rates
-  - **Sampled Videos Count:** `videos.length`
-  - **Data Completeness:** Ratio of populated fields across the 4 creator fields + 9 video fields per sampled video
+- Maps Apify `clockworks/tiktok-scraper` fields (`id` → `videoId`, `text` → `caption`, `webVideoUrl` → `videoUrl`, `authorMeta.id` → `creatorId` with `authorMeta.name` fallback, `authorMeta.fans` → `followers`, `playCount` → `views`, `diggCount` → `likes`, `commentCount` → `comments`, `shareCount` → `shares`, `createTimeISO` → `publishedAt`, `hashtags[].name` → `hashtags`).
+- Preserves missing metrics as `null`, retains `isAd`, and never invents audience demographics (`audienceDemographics: null`).
 
 ---
 
-## 7. Prerequisites & Installation Instructions
+## 7. API Reference (`POST /api/brands/analyze` & `POST /api/matching/evaluate`)
 
-- **Node.js:** `>= 22.x`
-- **pnpm:** `>= 10.x`
+### `POST /api/matching/evaluate`
+
+**Request:**
+
+```json
+{
+  "brandProfile": { "...BrandProfile from Step 3..." },
+  "dataSource": "fixture",
+  "executionMode": "fixture_mock",
+  "limit": 10
+}
+```
+
+- `executionMode`:
+  - `"fixture_mock"` (default): Deterministic offline evaluation using saved test evaluations in [`src/data/fixtures/kol-matching-fixture.json`](src/data/fixtures/kol-matching-fixture.json). Incurs `0` OpenAI API cost and sets `metadata.isOfflineDemoOutput = true`.
+  - `"live_ai"`: Calls the server-side OpenAI Responses API evaluator for each qualified creator. Never silently substitutes mock data if OpenAI fails.
+
+**Response (`200 OK` — Actual Excerpt from Primary Fixture):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "metadata": {
+      "algorithmVersion": "1.0.0-mvp",
+      "weights": {
+        "contentFit": 0.5,
+        "marketFit": 0.2,
+        "performanceFit": 0.2,
+        "creatorSuitability": 0.1
+      },
+      "dataSource": "fixture",
+      "executionMode": "fixture_mock",
+      "isOfflineDemoOutput": true,
+      "totalCandidatesEvaluated": 10,
+      "recommendedCount": 9,
+      "excludedCount": 1,
+      "manualReviewCount": 9
+    },
+    "recommendations": [
+      {
+        "creatorId": "6795513398643147778",
+        "username": "zzdaozz",
+        "displayName": "Dao Simasthien🫶🏻",
+        "profileUrl": "https://www.tiktok.com/@zzdaozz",
+        "followers": 1600000,
+        "matchScore": 83.24,
+        "rank": 1,
+        "qualificationStatus": "eligible",
+        "confidenceLevel": "medium",
+        "requiresManualReview": true,
+        "sampledVideosCount": 1,
+        "supportingVideoUrls": [
+          "https://www.tiktok.com/@zzdaozz/video/7688698184318651669"
+        ]
+      }
+    ],
+    "excludedCreators": [
+      {
+        "creatorId": "7011455597325812762",
+        "username": "remo.thailand",
+        "displayName": "Remo Thailand",
+        "exclusionSummary": "Excluded @remo.thailand: Identified as an official brand or company storefront account rather than an independent creator."
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 8. Prerequisites, Installation & Environment Variables
 
 ```bash
-git clone https://github.com/worapon888/convert-cake-kol-matcher.git
-cd convert-cake-kol-matcher
 pnpm install
 cp .env.example .env.local
 ```
 
----
-
-## 8. Environment Variable Configuration
-
-Copy [`.env.example`](.env.example) to `.env.local`. **Never commit `.env.local` or real API keys.**
-
-| Variable                   | Required                      | Default       | Description                                                                          |
-| -------------------------- | ----------------------------- | ------------- | ------------------------------------------------------------------------------------ |
-| `OPENAI_API_KEY`           | Required for Live AI Analysis | —             | Server-side OpenAI API key for `client.responses.parse`                              |
-| `OPENAI_MODEL`             | Optional                      | `gpt-4o-mini` | OpenAI model supporting Structured Outputs (`gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4o`) |
-| `APIFY_API_TOKEN`          | Optional                      | —             | Apify token for fetching existing `clockworks/tiktok-scraper` datasets               |
-| `NEXT_PUBLIC_USE_FIXTURES` | Optional                      | `true`        | Enables local fixture mode                                                           |
+| Variable                   | Required                  | Default       | Description                                                        |
+| -------------------------- | ------------------------- | ------------- | ------------------------------------------------------------------ |
+| `OPENAI_API_KEY`           | Required for Live AI Mode | —             | Server-side OpenAI API key (`sk-...`)                              |
+| `OPENAI_MODEL`             | Optional                  | `gpt-4o-mini` | Structured Outputs model (`gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4o`) |
+| `APIFY_API_TOKEN`          | Optional                  | —             | Guarded Apify token for existing dataset fetches                   |
+| `NEXT_PUBLIC_USE_FIXTURES` | Optional                  | `true`        | Uses local fixtures by default                                     |
 
 ---
 
-## 9. Local Development & Testing Commands
+## 9. Testing, Evaluation Benchmark & Controlled Live Execution
+
+### Automated Verification Commands (0 API Cost)
 
 ```bash
-# Run all automated unit tests (35 tests across Step 2 & Step 3 — no paid API calls)
-pnpm test
-
-# Run ESLint
 pnpm lint
-
-# Run TypeScript strict compiler verification
 pnpm typecheck
-
-# Check Prettier formatting
+pnpm test
 pnpm format:check
-
-# Start the local development server
-pnpm dev
 ```
 
----
+### Human-Labeled Evaluation Benchmark (`getHumanLabeledEvaluationCases`)
 
-## 10. Manual Integration Test Procedure (Controlled Live Test)
+Defined in [`src/lib/matching/fixtures.ts`](src/lib/matching/fixtures.ts) and verified in [`tests/unit/kol-matching-engine.test.ts`](tests/unit/kol-matching-engine.test.ts):
 
-Automated unit tests mock all OpenAI and external network calls. To run **one controlled live test** against a real public website:
+- `EVAL-01-RELEVANT-CREATOR`: `@zzdaozz` (`eligible`, `individual_creator`, `open_to_collab`, `relevant`)
+- `EVAL-02A-OFFICIAL-BRAND-ACCOUNT-REMO`: `@remo.thailand` (`excluded`, `brand_account` via `"ช่องบริษัท"`)
+- `EVAL-02B-OFFICIAL-BRAND-ACCOUNT-ETUDE`: `@etudethailand` (`excluded`, `brand_account` via `"ETUDE Thailand Official TikTok"`, `isAd=false`)
+- `EVAL-03-EXPLICIT-REVIEW-REFUSAL`: Creator with `"ไม่รับงานรีวิว"` bio (`excluded`, `restricted`)
+- `EVAL-04-UNCLEAR-THAI-MARKET-RELEVANCE`: `@honestglowup5` with Burmese `textLanguage="my"` (`needs_review`, `not_observed`)
+- `EVAL-05-MISSING-PERFORMANCE-METRICS`: Creator with `null` bio and missing view/like metrics (`needs_review`, `performanceFitScore: null`)
 
-1. Add your `OPENAI_API_KEY` to `.env.local` (and optionally set `OPENAI_MODEL=gpt-4o-mini`).
-2. Start the Next.js server:
-   ```bash
-   pnpm dev
-   ```
-3. Open `http://localhost:3000`:
-   - **Offline Fixture Preview (0 API cost):** Click **"Load Controlled Fixture (Offline Preview)"** to inspect and edit the sample `Lumina Skin Thailand` Brand Profile immediately.
-   - **Controlled Live Test (1 OpenAI request):** Enter a real public business URL (e.g., `https://srichand.co.th` or `https://mizumi-official.com`) or enter a manual brand description, then click **"Analyze Brand"**.
-4. Or test via `curl` / PowerShell:
-   ```powershell
-   Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/brands/analyze" `
-     -ContentType "application/json" `
-     -Body '{"websiteUrl":"https://www.srichand.co.th","targetMarket":"Thailand"}'
-   ```
+> **Benchmark Caveat:** Matching 6 human-labeled reference cases verifies rule logic and schema invariants but does **not** establish statistical model accuracy. See [`docs/evaluation.md`](docs/evaluation.md) for how to expand the evaluation dataset.
 
----
+### Running One Controlled Live Evaluation
 
-## 11. Security Considerations, Facebook Extraction & Dataset Limitations
-
-- **SSRF Protection:** Blocks localhost, private IP ranges (`10/8`, `172.16/12`, `192.168/16`), link-local/cloud metadata (`169.254.169.254`), non-HTTP(S) protocols, unsafe redirects, and DNS rebinding to internal IPs.
-- **Prompt Injection Defense:** Webpage and Facebook content is wrapped inside `<untrusted_website_data>` and `<untrusted_facebook_data>` tags with system instructions enforcing that scraped text is treated strictly as untrusted data.
-- **Facebook Extraction Limitation:** Unauthenticated Facebook requests are frequently blocked by login walls. Extraction is best-effort for public OpenGraph tags and gracefully falls back to website or manual description data with an explicit warning.
-- **Single-Video TikTok Dataset Limitation:** The Step 2 fixture contains 10 videos from 10 unique creators (`1` video per creator). Single-video metrics are flagged with `isRepresentativeCreatorPerformance: false` and must not be treated as overall creator performance.
+1. Configure a valid `OPENAI_API_KEY` in `.env.local` and run `pnpm dev`.
+2. Open `http://localhost:3000`:
+   - Click **"Load Controlled Brand Fixture (Offline Preview)"** (or analyze a brand URL).
+   - In **Section 4 (Step 4 — AI TikTok KOL Matching & Ranking Engine)**:
+     - Keep `fixture_mock` selected to run offline at `0` API cost, **or**
+     - Select `live_ai` and set `Max Ranked Recommendations` to a small limit (e.g., `3` or `5`) before clicking **"Run Matching"** to execute a controlled live OpenAI evaluation.
 
 ---
 
-## 12. References & External Resources
+## 10. Known Limitations, Potential Biases & Security Safeguards
 
-- [OpenAI Responses API & Structured Outputs Documentation](https://platform.openai.com/docs/guides/structured-outputs)
-- [Apify `clockworks/tiktok-scraper` Actor](https://apify.com/clockworks/tiktok-scraper)
-- [Architecture Specification (`docs/architecture.md`)](docs/architecture.md)
-- [Evaluation & Testing Strategy (`docs/evaluation.md`)](docs/evaluation.md)
+- **Single-Video Sample Limitation:** All 10 creators in the primary dataset have `1` sampled video. Performance Fit is capped by a `0.75x` provisional factor and `confidenceLevel` cannot exceed `"medium"`.
+- **Potential Ranking Biases:**
+  - **Caption Verbosity Bias:** Creators who write detailed Thai skincare captions (`@zzdaozz`, `@pchskinmood`) naturally receive higher Content Style scores than creators who post visual demos with 2-word captions (`@pim168889439`, `@nnampunnn`).
+  - **Search-Query Selection Bias:** The fixture was collected using the hashtag/query `"รีวิวสกินแคร์"`, favoring creators who explicitly use that tag.
+  - **Initial Heuristic Weights:** The `50/20/20/10` weights are transparent MVP defaults, not empirically calibrated on historical campaign ROI/GMV.
+- **Security & Cost Safeguards:** SSRF protection, `<untrusted_creator_data>` prompt-injection isolation, strict evidence `videoId`/`videoUrl` validation, `MAX_EVALUATED_CREATORS = 20` cap, and `ApifyPaidRunGuardError` preventing automatic paid Apify runs.

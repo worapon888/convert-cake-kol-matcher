@@ -1,0 +1,289 @@
+{
+  "fixtureNotice": "Offline test/demo content evaluations for real Apify TikTok creator records against the controlled Lumina Skin Thailand BrandProfile. Clearly separated from live OpenAI evaluations.",
+  "evaluationsByCreatorId": {
+    "6795513398643147778": {
+      "contentFitScore": 92,
+      "categoryRelevanceScore": 95,
+      "contentStyleScore": 88,
+      "productRelevanceScore": 92,
+      "marketFitScore": 94,
+      "strengths": [
+        "Directly addresses sensitive skin (#ผิวแพ้ง่าย) and skin barrier repair (#เกราะป้องกันผิว) in Thai skincare content.",
+        "Explicitly lists collaboration contact in bio (For work Line @workwithdjdao)."
+      ],
+      "concerns": [
+        "Only 1 sampled video in the current dataset; multi-video consistency is unverified.",
+        "Sampled video is marked isAd=true for another cream brand (#ครีมformulogic); check category exclusivity."
+      ],
+      "explanation": "[Offline Test Evaluation] @zzdaozz demonstrates strong topical alignment with sensitive-skin and skin-barrier care in Thai (#ผิวแพ้ง่าย, #เกราะป้องกันผิว) and provides clear work contact details.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7688698184318651669",
+          "videoUrl": "https://www.tiktok.com/@zzdaozz/video/7688698184318651669",
+          "quotedText": "ใคร #ผิวแพ้ง่าย มาลองโบกตัวนี้ดูค่ะ ช่วยได้จริงๆ🫶 #สกินแคร์ #ครีม #ครีมformulogic #เกราะป้องกันผิว",
+          "relevanceNote": "Directly targets sensitive skin and skin barrier protection in Thai."
+        },
+        {
+          "sourceField": "bio",
+          "videoId": null,
+          "videoUrl": null,
+          "quotedText": "For work Line @workwithdjdao",
+          "relevanceNote": "Explicit collaboration contact in profile bio."
+        }
+      ],
+      "missingEvidence": [
+        "Only 1 sampled video available; historical posting cadence and multi-video median views are unavailable.",
+        "Audience demographics are not available in public scrape data."
+      ],
+      "confidenceLevel": "medium"
+    },
+    "6807659964938257409": {
+      "contentFitScore": 89,
+      "categoryRelevanceScore": 92,
+      "contentStyleScore": 90,
+      "productRelevanceScore": 85,
+      "marketFitScore": 92,
+      "strengths": [
+        "Focuses on step-by-step explained night skincare routines (#nightskincareroutine, #skincareroutine, #ผิวชุ่มชื้น).",
+        "Explicitly provides work contact in bio (for work : @pchskinmood)."
+      ],
+      "concerns": [
+        "Only 1 sampled video in the dataset; creator-level consistency requires additional video sampling."
+      ],
+      "explanation": "[Offline Test Evaluation] @pchskinmood creates educational Thai skincare routine content (#nightskincareroutine, #ผิวชุ่มชื้น) well suited for barrier serum and cleanser demonstrations.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7606312510441950484",
+          "videoUrl": "https://www.tiktok.com/@pchskinmood/video/7606312510441950484",
+          "quotedText": "night routine พร้อมคำอธิบาย ใครขอไว้มาฟังหน่อยยย 🥹 #nightskincareroutine #skincare #skincareroutine #ผิวชุ่มชื้น #antiaging",
+          "relevanceNote": "Educational skincare routine format in Thai."
+        },
+        {
+          "sourceField": "bio",
+          "videoId": null,
+          "videoUrl": null,
+          "quotedText": "🧸for work : @pchskinmood",
+          "relevanceNote": "Explicit collaboration contact in creator bio."
+        }
+      ],
+      "missingEvidence": [
+        "Single sampled video only; multi-post consistency cannot be verified."
+      ],
+      "confidenceLevel": "medium"
+    },
+    "68605486110": {
+      "contentFitScore": 84,
+      "categoryRelevanceScore": 88,
+      "contentStyleScore": 78,
+      "productRelevanceScore": 85,
+      "marketFitScore": 90,
+      "strengths": [
+        "Directly reviews acne facial cleansers in Thai (#โฟมล้างหน้ามะเขือเทศขาว, หน้าสิว).",
+        "Bio states openness to work/affiliate collaborations (ติดต่องาน / affiliate LINE ID : @530hrkqu)."
+      ],
+      "concerns": [
+        "Username @thirisxstore includes 'store'; manual review needed to confirm individual creator vs. affiliate storefront.",
+        "Caption uses bold 14-day acne phrasing ('14 วันเกียมบอกลาหน้าสิวไปได้เลย'); brand requires non-exaggerated claims."
+      ],
+      "explanation": "[Offline Test Evaluation] @thirisxstore produces Thai acne-cleanser review content with strong view reach, though the 'store' handle and bold claim style require manual review.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7685725641450442005",
+          "videoUrl": "https://www.tiktok.com/@thirisxstore/video/7685725641450442005",
+          "quotedText": "14 วันเกียมบอกลาหน้าสิวไปได้เลย ! #CareangelaCleanser #CareAngela #แคร์แองเจลล่าโฟมมูสไอศกรีม #IceCreamCleanser #โฟมล้างหน้ามะเขือเทศขาว",
+          "relevanceNote": "Acne facial cleanser content in Thai."
+        },
+        {
+          "sourceField": "bio",
+          "videoId": null,
+          "videoUrl": null,
+          "quotedText": "ติดต่องาน / affiliate LINE ID : @530hrkqu (มี@)",
+          "relevanceNote": "Provides LINE ID for work/affiliate inquiries."
+        }
+      ],
+      "missingEvidence": ["Single sampled video only."],
+      "confidenceLevel": "medium"
+    },
+    "7428835783894860807": {
+      "contentFitScore": 83,
+      "categoryRelevanceScore": 88,
+      "contentStyleScore": 80,
+      "productRelevanceScore": 80,
+      "marketFitScore": 90,
+      "strengths": [
+        "Dedicated skincare review positioning (nickname Skinwithgg, #การดูแลผิว101, #skincare).",
+        "Provides both LINE ID and email for work inquiries in bio."
+      ],
+      "concerns": [
+        "Single sampled video in current dataset; focuses on Korean skincare (#koreanskincare) so verify openness to Thai dermo-cosmetic brands."
+      ],
+      "explanation": "[Offline Test Evaluation] @g.granviia.th (Skinwithgg) focuses on skincare education and recommendations in Thai (#การดูแลผิว101) with clear work contact channels.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7672742926379732232",
+          "videoUrl": "https://www.tiktok.com/@g.granviia.th/video/7672742926379732232",
+          "quotedText": "Skincare ที่คนซื้อตามเยอะที่สุด ดีใจที่ชอบกันนะคะ🫶🏻 #การดูแลผิว101 #skincare #koreanskincare",
+          "relevanceNote": "Thai skincare recommendation post."
+        },
+        {
+          "sourceField": "bio",
+          "videoId": null,
+          "videoUrl": null,
+          "quotedText": "Working ID line : Granvia1609 💌 : sirikornleelasintham25@gmail.com",
+          "relevanceNote": "Direct collaboration contact details."
+        }
+      ],
+      "missingEvidence": ["Single sampled video only."],
+      "confidenceLevel": "medium"
+    },
+    "7027051206242354178": {
+      "contentFitScore": 79,
+      "categoryRelevanceScore": 84,
+      "contentStyleScore": 74,
+      "productRelevanceScore": 78,
+      "marketFitScore": 88,
+      "strengths": [
+        "Produces Thai skincarefluid/dark-spot review content (#NIVEASKINGLOW, #NIVEADailyFluid).",
+        "Clear work contact via LINE in bio."
+      ],
+      "concerns": [
+        "Caption is brief and uses urgent recovery phrasing ('กู้ผิวเร่งด่วนให้ไร้จุดดำ'); only 1 video sampled."
+      ],
+      "explanation": "[Offline Test Evaluation] @praephilaiphangpo0 reviews facial fluid skincare in Thai and provides direct work contact, though caption depth is brief.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7656371907972877600",
+          "videoUrl": "https://www.tiktok.com/@praephilaiphangpo0/video/7656371907972877600",
+          "quotedText": "กู้ผิวเร่งด่วนให้ไร้จุดดำ💙 #ปาดเดียวครบจบทุกจุด #NIVEASKINGLOW #NIVEADailyFluid",
+          "relevanceNote": "Thai facial skincare review post."
+        }
+      ],
+      "missingEvidence": ["Single sampled video only."],
+      "confidenceLevel": "medium"
+    },
+    "7044710159655404570": {
+      "contentFitScore": 73,
+      "categoryRelevanceScore": 78,
+      "contentStyleScore": 68,
+      "productRelevanceScore": 72,
+      "marketFitScore": 86,
+      "strengths": [
+        "Uses #รีวิวสกินแคร์ (skincare review) and #โต๊ะเครื่องแป้ง in Thai.",
+        "Explicitly invites review inquiries in bio (ติดต่องานรีวิวทัก✅Like: pim130750)."
+      ],
+      "concerns": [
+        "Sampled video caption ('เงินมาของไป😙') is very short and does not demonstrate ingredient or skin-barrier education.",
+        "Only 1 sampled video available."
+      ],
+      "explanation": "[Offline Test Evaluation] @pim168889439 tags #รีวิวสกินแคร์ and accepts review work, but the single sampled caption provides minimal product or ingredient detail.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7688251991771974920",
+          "videoUrl": "https://www.tiktok.com/@pim168889439/video/7688251991771974920",
+          "quotedText": "เงินมาของไป😙 #รีวิวสกินแคร์ #โต๊ะเครื่องแป้ง #fyp",
+          "relevanceNote": "Tagged with Thai skincare review hashtag."
+        }
+      ],
+      "missingEvidence": [
+        "Caption lacks specific product/skin-concern explanation; only 1 video sampled."
+      ],
+      "confidenceLevel": "medium"
+    },
+    "7044772694650258459": {
+      "contentFitScore": 82,
+      "categoryRelevanceScore": 90,
+      "contentStyleScore": 82,
+      "productRelevanceScore": 86,
+      "marketFitScore": 88,
+      "strengths": [
+        "Sampled post directly discusses skin barrier calming lotion (Ongredients Skin Barrier Calming Lotion EX) in Thai."
+      ],
+      "concerns": [
+        "Bio ('สกินแคร์/เมคอัพนำเข้า🇺🇸🇰🇷 คัดและลองมาแล้วทุกตัว tested by us, selected for you') suggests an imported skincare curator/retailer rather than an individual creator.",
+        "No explicit sponsorship/work contact in bio."
+      ],
+      "explanation": "[Offline Test Evaluation] @thedailypal posts highly relevant Thai skin-barrier content, but profile bio indicates an imported skincare curator/shop without explicit collaboration contact.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7655847969886981397",
+          "videoUrl": "https://www.tiktok.com/@thedailypal/video/7655847969886981397",
+          "quotedText": "Ongredients Skin Barrier Calming Lotion EX ช่วยเติมน้ำ ปลอบผิว และเตรียมผิวให้พร้อมแต่งหน้าในขั้นตอนเดียว!",
+          "relevanceNote": "Skin barrier calming product discussion in Thai."
+        },
+        {
+          "sourceField": "bio",
+          "videoId": null,
+          "videoUrl": null,
+          "quotedText": "🧴✨สกินแคร์/เมคอัพนำเข้า🇺🇸🇰🇷 คัดและลองมาแล้วทุกตัว tested by us, selected for you",
+          "relevanceNote": "Indicates multi-brand importer/curator positioning requiring manual review."
+        }
+      ],
+      "missingEvidence": [
+        "Unclear whether account is an individual creator or retail curator; only 1 video sampled."
+      ],
+      "confidenceLevel": "low"
+    },
+    "7494206088494285825": {
+      "contentFitScore": 70,
+      "categoryRelevanceScore": 78,
+      "contentStyleScore": 60,
+      "productRelevanceScore": 72,
+      "marketFitScore": 80,
+      "strengths": [
+        "Sampled video includes Thai skincare caption and acne/serum hashtags (#skincare, #Acne, #serum)."
+      ],
+      "concerns": [
+        "Creator bio is completely empty (null); account identity and collaboration availability are unknown.",
+        "Caption contains promotional code string ('YXAJH1273-zpm') and generic unrelated tags (#muscle, #handsomeguys)."
+      ],
+      "explanation": "[Offline Test Evaluation] @lsabella5733 posts Thai skincare/serum tags, but lacks any profile bio or collaboration contact and includes noisy hashtags.",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7698326365661072661",
+          "videoUrl": "https://www.tiktok.com/@lsabella5733/video/7698326365661072661",
+          "quotedText": "ทำให้สกินแคร์เป็นกิจวัตรประจำวัน ✨🧴YXAJH1273-zpm#teashell #เผื่อใครถามว่าซื้อไหน #แผลเป็น #เปล่งประกาย #skincare",
+          "relevanceNote": "Thai skincare caption with mixed hashtags."
+        }
+      ],
+      "missingEvidence": [
+        "Profile bio is null; no collaboration contact information; single sampled video."
+      ],
+      "confidenceLevel": "low"
+    },
+    "7240385168925197317": {
+      "contentFitScore": 64,
+      "categoryRelevanceScore": 68,
+      "contentStyleScore": 58,
+      "productRelevanceScore": 65,
+      "marketFitScore": 65,
+      "strengths": [
+        "Bio includes explicit work contact ('ig : nnampunnn (For work)').",
+        "Hashtags reference Dragon's Blood skincare/scar gel (#ดราก้อนบลัดเเดง, #รีวิวโลตัส)."
+      ],
+      "concerns": [
+        "Caption consists only of an emoji and 3 hashtags ('😍 #ดราก้อนบลัดเเดง #รีวิวโลตัส #fyp') with textLanguage='un'.",
+        "Insufficient caption text to verify content style or skin-barrier education capability."
+      ],
+      "explanation": "[Offline Test Evaluation] @nnampunnn references #ดราก้อนบลัดเเดง and accepts work via IG, but the single sampled video has almost no caption text (textLanguage='un').",
+      "supportingEvidence": [
+        {
+          "sourceField": "video_caption",
+          "videoId": "7685302866633952530",
+          "videoUrl": "https://www.tiktok.com/@nnampunnn/video/7685302866633952530",
+          "quotedText": "😍 #ดราก้อนบลัดเเดง #รีวิวโลตัส #fyp",
+          "relevanceNote": "Thai skincare product hashtag, minimal text."
+        }
+      ],
+      "missingEvidence": ["Minimal caption text; single sampled video."],
+      "confidenceLevel": "low"
+    }
+  }
+}
