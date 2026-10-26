@@ -82,8 +82,8 @@ export default function Screen01BrandInputPage() {
                 className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#6898FF] via-[#B378FF] via-[#FF66A6] to-[#FF8B6B] blur-[7px] pointer-events-none animate-glow-breathe animate-gradient-drift"
                 aria-hidden="true"
               />
-              {/* Main bright gradient pill with subtle color drift and silky shimmer wave */}
-              <div className="relative h-full w-full rounded-full overflow-hidden bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)] animate-gradient-drift">
+              {/* Main bright gradient pill with subtle color drift, synchronized glow pulse and silky shimmer wave */}
+              <div className="relative h-full w-full rounded-full overflow-hidden bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)] animate-gradient-drift animate-pill-pulse">
                 {/* Subtle light shimmer sweep */}
                 <div
                   className="absolute inset-y-0 w-3/5 bg-gradient-to-r from-transparent via-white/45 to-transparent pointer-events-none animate-shimmer-sweep"

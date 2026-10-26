@@ -39,17 +39,31 @@ body {
   }
 }
 
+/* Faster, lively pulsing glow */
 @keyframes softGlowBreathe {
   0%,
   100% {
-    opacity: 0.8;
-    filter: blur(7px);
-    transform: scaleY(1);
+    opacity: 0.6;
+    filter: blur(6px);
+    transform: scale(0.98, 0.94);
   }
   50% {
-    opacity: 0.98;
-    filter: blur(9px);
-    transform: scaleY(1.06);
+    opacity: 1;
+    filter: blur(10px);
+    transform: scale(1.02, 1.12);
+  }
+}
+
+/* Synchronized pill brightness & shadow pulse */
+@keyframes pillPulse {
+  0%,
+  100% {
+    filter: brightness(0.96);
+    box-shadow: 0 0 8px rgba(255, 84, 153, 0.4);
+  }
+  50% {
+    filter: brightness(1.08);
+    box-shadow: 0 0 16px rgba(255, 84, 153, 0.75);
   }
 }
 
@@ -68,13 +82,13 @@ body {
     opacity: 0;
   }
   20% {
-    opacity: 0.4;
+    opacity: 0.45;
   }
   50% {
-    opacity: 0.65;
+    opacity: 0.75;
   }
   80% {
-    opacity: 0.4;
+    opacity: 0.45;
   }
   100% {
     transform: translateX(250%) skewX(-15deg);
@@ -87,17 +101,21 @@ body {
 }
 
 .animate-glow-breathe {
-  animation: softGlowBreathe 5s ease-in-out infinite;
+  animation: softGlowBreathe 1.8s ease-in-out infinite;
+}
+
+.animate-pill-pulse {
+  animation: pillPulse 1.8s ease-in-out infinite;
 }
 
 .animate-gradient-drift {
   background-size: 150% 150%;
-  animation: subtleGradientDrift 7s ease-in-out infinite alternate;
+  animation: subtleGradientDrift 5s ease-in-out infinite alternate;
 }
 
 .animate-shimmer-sweep {
-  animation: shimmerSweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  animation-delay: 1.2s;
+  animation: shimmerSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.3s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -106,6 +124,7 @@ body {
     width: 24%;
   }
   .animate-glow-breathe,
+  .animate-pill-pulse,
   .animate-gradient-drift,
   .animate-shimmer-sweep {
     animation: none;
