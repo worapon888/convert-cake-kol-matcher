@@ -75,15 +75,21 @@ export default function Screen01BrandInputPage() {
             aria-valuemax={5}
             className="flex-1 min-w-0 h-[11px] sm:h-[13px] rounded-full bg-[#FDE7EC] relative flex items-center"
           >
-            {/* Active Segment (~24% width) with bright pastel gradient & luminous diffused aura */}
-            <div className="relative h-full w-[24%]">
-              {/* Soft bright blurred glow that bleeds around the active segment */}
+            {/* Active Segment (~24% width) with smooth entrance fill, bright pastel gradient & luminous diffused aura */}
+            <div className="relative h-full w-[24%] animate-progress-fill">
+              {/* Soft bright blurred glow that bleeds around the active segment with gentle breathing */}
               <div
-                className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#6898FF] via-[#B378FF] via-[#FF66A6] to-[#FF8B6B] blur-[7px] opacity-90 pointer-events-none"
+                className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#6898FF] via-[#B378FF] via-[#FF66A6] to-[#FF8B6B] blur-[7px] pointer-events-none animate-glow-breathe animate-gradient-drift"
                 aria-hidden="true"
               />
-              {/* Main bright gradient pill */}
-              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)]" />
+              {/* Main bright gradient pill with subtle color drift and silky shimmer wave */}
+              <div className="relative h-full w-full rounded-full overflow-hidden bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)] animate-gradient-drift">
+                {/* Subtle light shimmer sweep */}
+                <div
+                  className="absolute inset-y-0 w-3/5 bg-gradient-to-r from-transparent via-white/45 to-transparent pointer-events-none animate-shimmer-sweep"
+                  aria-hidden="true"
+                />
+              </div>
             </div>
           </div>
         </div>

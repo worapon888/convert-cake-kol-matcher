@@ -28,3 +28,86 @@ body {
   padding: 0;
   overflow-x: hidden;
 }
+
+/* Minimal & Elegant Progress Bar Motion */
+@keyframes progressFillIn {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 24%;
+  }
+}
+
+@keyframes softGlowBreathe {
+  0%,
+  100% {
+    opacity: 0.8;
+    filter: blur(7px);
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.98;
+    filter: blur(9px);
+    transform: scaleY(1.06);
+  }
+}
+
+@keyframes subtleGradientDrift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-150%) skewX(-15deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  80% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(250%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+
+.animate-progress-fill {
+  animation: progressFillIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-glow-breathe {
+  animation: softGlowBreathe 5s ease-in-out infinite;
+}
+
+.animate-gradient-drift {
+  background-size: 150% 150%;
+  animation: subtleGradientDrift 7s ease-in-out infinite alternate;
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 1.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-progress-fill {
+    animation: none;
+    width: 24%;
+  }
+  .animate-glow-breathe,
+  .animate-gradient-drift,
+  .animate-shimmer-sweep {
+    animation: none;
+  }
+}
