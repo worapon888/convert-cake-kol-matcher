@@ -75,21 +75,15 @@ export default function Screen01BrandInputPage() {
             aria-valuemax={5}
             className="flex-1 min-w-0 h-[11px] sm:h-[13px] rounded-full bg-[#FDE7EC] relative flex items-center"
           >
-            {/* Active Segment (~24% width) with bright pastel gradient & luminous diffused aura with motion */}
+            {/* Active Segment (~24% width) with bright pastel gradient & luminous diffused aura */}
             <div className="relative h-full w-[24%]">
-              {/* Soft bright blurred glow that bleeds around the active segment with fluid breathing motion */}
+              {/* Soft bright blurred glow that bleeds around the active segment */}
               <div
-                className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] animate-aura pointer-events-none"
+                className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#6898FF] via-[#B378FF] via-[#FF66A6] to-[#FF8B6B] blur-[7px] opacity-90 pointer-events-none"
                 aria-hidden="true"
               />
-              {/* Main bright gradient pill with flowing colors & subtle light shimmer */}
-              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] animate-gradient-flow shadow-[0_0_12px_rgba(255,84,153,0.55)] overflow-hidden">
-                {/* Subtle light shimmer sweep */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent -translate-x-full animate-shimmer pointer-events-none"
-                  aria-hidden="true"
-                />
-              </div>
+              {/* Main bright gradient pill */}
+              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)]" />
             </div>
           </div>
         </div>
