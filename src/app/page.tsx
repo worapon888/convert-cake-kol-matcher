@@ -92,8 +92,8 @@ export default function Screen01BrandInputPage() {
       {/* Main Content Area: Centered Hero + Input + Buttons */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12 -mt-4 sm:-mt-8">
         <div className="w-full max-w-xl mx-auto text-center">
-          {/* Heading */}
-          <h1 className="text-xl sm:text-[29px] md:text-[31px] font-bold text-[#18181B] tracking-tight max-w-[330px] sm:max-w-none mx-auto leading-tight sm:leading-normal">
+          {/* Heading with slightly reduced weight (semibold) and softer charcoal color */}
+          <h1 className="text-xl sm:text-[29px] md:text-[31px] font-semibold text-[#2B2B36] tracking-tight max-w-[330px] sm:max-w-none mx-auto leading-tight sm:leading-normal">
             First, let&apos;s understand your brand
           </h1>
 
