@@ -46,9 +46,9 @@ export default function Screen01BrandInputPage() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Top Bar: Back Arrow + Gradient Progress Bar */}
+      {/* Top Bar: Back Arrow + Large Glowing Progress Bar */}
       <div className="w-full pt-8 sm:pt-10 px-4 sm:px-6">
-        <div className="w-full max-w-[580px] mx-auto flex items-center justify-center gap-3.5">
+        <div className="w-full max-w-[620px] mx-auto flex items-center justify-center gap-3 sm:gap-3.5">
           {/* Back Arrow Button */}
           <button
             type="button"
@@ -73,10 +73,18 @@ export default function Screen01BrandInputPage() {
             aria-valuenow={1}
             aria-valuemin={1}
             aria-valuemax={5}
-            className="flex-1 min-w-0 h-[6px] rounded-full bg-[#FCE8ED] overflow-hidden p-0 relative"
+            className="flex-1 min-w-0 h-[11px] sm:h-[13px] rounded-full bg-[#FCE8ED] relative flex items-center"
           >
-            {/* Active Segment (~22% width) with smooth gradient */}
-            <div className="h-full w-[22%] rounded-full bg-gradient-to-r from-[#4F68A8] via-[#855B90] via-[#C65A7D] to-[#E37265] shadow-[0_0_10px_rgba(198,90,125,0.45)]" />
+            {/* Active Segment (~24% width) with smooth gradient & diffused blur aura */}
+            <div className="relative h-full w-[24%]">
+              {/* Soft blurred glow that bleeds around the active segment */}
+              <div
+                className="absolute -inset-[3px] rounded-full bg-gradient-to-r from-[#455E9E] via-[#774E86] via-[#BD4E70] to-[#E56350] blur-[4px] opacity-75 pointer-events-none"
+                aria-hidden="true"
+              />
+              {/* Main gradient pill */}
+              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#455E9E] via-[#774E86] via-[#BD4E70] to-[#E56350] shadow-[0_0_8px_rgba(229,99,80,0.45)]" />
+            </div>
           </div>
         </div>
       </div>
