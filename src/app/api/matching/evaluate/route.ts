@@ -9,9 +9,6 @@ import {
   runKOLMatchingPipeline,
 } from "@/lib/matching";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export interface MatchingEvaluateApiErrorResponse {
   ok: false;
   error: {
