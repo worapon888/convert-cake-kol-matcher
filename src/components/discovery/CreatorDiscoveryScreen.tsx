@@ -587,7 +587,7 @@ export function CreatorDiscoveryScreen({
               <div className="font-semibold text-slate-800 mb-1.5 flex items-center justify-between">
                 <span>Select Keyword (1 per search):</span>
                 <span className="text-[10.5px] text-purple-600 font-medium">
-                  Max 10 results
+                  Max 5 results
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -607,7 +607,7 @@ export function CreatorDiscoveryScreen({
                 ))}
               </div>
               <div className="mt-2 text-[10.5px] text-slate-400">
-                Cost limit: capped at $0.50 USD and 10 items. Paid media add-ons
+                Cost limit: capped at $0.25 USD and 5 items. Paid media add-ons
                 disabled.
               </div>
             </div>

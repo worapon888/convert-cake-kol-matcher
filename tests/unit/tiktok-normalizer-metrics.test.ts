@@ -429,7 +429,7 @@ describe("Step 2 — TikTok Data Normalization and Creator Metrics", () => {
       await expect(
         runClockworksTikTokScraper({
           searchQueries: ["รีวิวสกินแคร์"],
-          resultsPerPage: 10,
+          resultsPerPage: 5,
           shouldDownloadVideos: false,
           shouldDownloadCovers: false,
           shouldDownloadSubtitles: false,

@@ -88,8 +88,8 @@ export async function GET() {
       cached: false,
       searchKeyword: "รีวิวสกินแคร์",
       costControls: {
-        maxItemsSentToApify: 10,
-        maxTotalChargeUsd: 0.5,
+        maxItemsSentToApify: 5,
+        maxTotalChargeUsd: 0.25,
         timeoutSecs: 60,
         paidAddonsDisabled: true,
       },
@@ -145,17 +145,17 @@ async function executeCostControlledScrape(
         apiToken: options.token,
         fetchFn: options.fetchFn,
         allowPaidActorRun: true,
-        maxItems: 10, // Apify run-level item limit
+        maxItems: 5, // Apify run-level item limit
         timeoutSecs: 60, // Apify 60s timeout guard
-        maxTotalChargeUsd: 0.5, // Apify billing cap ($0.50 USD max)
+        maxTotalChargeUsd: 0.25, // Apify billing cap ($0.25 USD max)
         memoryMbytes: 1024,
       };
 
-      // Strict enforcement: exactly 1 keyword, resultsPerPage <= 10, paid add-ons false
+      // Strict enforcement: exactly 1 keyword, resultsPerPage <= 5, paid add-ons false
       const result = await runClockworksTikTokScraper(
         {
           searchQueries: [keyword],
-          resultsPerPage: 10,
+          resultsPerPage: 5,
           shouldDownloadVideos: false,
           shouldDownloadCovers: false,
           shouldDownloadSubtitles: false,
@@ -200,7 +200,7 @@ async function executeCostControlledScrape(
         totalVideos: result.normalized.totalVideos,
         totalCreators: dedupedCreators.length,
         datasetWarning: result.normalized.datasetWarning,
-        note: `Search capped at 1 keyword and max 10 items to prevent excessive Apify charges. Search additional keywords manually if needed.`,
+        note: `Search capped at 1 keyword and max 5 items to prevent excessive Apify charges. Search additional keywords manually if needed.`,
       };
 
       // Store in cache
@@ -225,8 +225,8 @@ async function executeCostControlledScrape(
  *
  * Strict Cost Controls:
  * - Restricted to 1 Keyword per run (subsequent keywords must be triggered manually by user).
- * - Backend enforces max 10 results per run (`maxItems=10`, `resultsPerPage=10`).
- * - Apify query params include `maxItems=10`, `timeout=60`, `maxTotalChargeUsd=0.50`.
+ * - Backend enforces max 5 results per run (`maxItems=5`, `resultsPerPage=5`).
+ * - Apify query params include `maxItems=5`, `timeout=60`, `maxTotalChargeUsd=0.25`.
  * - Paid media downloads (videos, covers, subtitles, slideshows) are disabled.
  * - In-flight deduplication & in-memory caching prevent duplicate charges.
  * - Deduplicates creators and tags excluded accounts (official brand accounts).

@@ -301,7 +301,7 @@ describe("Screen 03 — Creator Discovery Specification, State & Safety", () => 
   });
 
   describe("7. Strict Apify Cost Control Verification", () => {
-    it("passes maxItems=10 and maxTotalChargeUsd directly into Apify API URL query string", async () => {
+    it("passes maxItems=5 and maxTotalChargeUsd directly into Apify API URL query string", async () => {
       const rawFixture = loadRawApifyFixture("primary");
       let capturedUrl = "";
       let capturedBody: Record<string, unknown> = {};
@@ -323,28 +323,28 @@ describe("Screen 03 — Creator Discovery Specification, State & Safety", () => 
         {
           // Pass multiple keywords to test strict 1-keyword capping
           searchQueries: ["เซรั่มลดสิว", "มอยส์เจอร์ไรเซอร์", "ครีมกันแดด"],
-          resultsPerPage: 50, // Pass excessive count to test strict 10 capping
+          resultsPerPage: 50, // Pass excessive count to test strict 5 capping
         },
         {
           apiToken: "test_apify_token_xyz",
           allowPaidActorRun: true,
           fetchFn: mockFetch as unknown as typeof fetch,
-          maxItems: 10,
-          maxTotalChargeUsd: 0.5,
+          maxItems: 5,
+          maxTotalChargeUsd: 0.25,
           timeoutSecs: 60,
         }
       );
 
       // Verify URL contains Apify run-level parameters
       const parsedUrl = new URL(capturedUrl);
-      expect(parsedUrl.searchParams.get("maxItems")).toBe("10");
-      expect(parsedUrl.searchParams.get("maxTotalChargeUsd")).toBe("0.50");
+      expect(parsedUrl.searchParams.get("maxItems")).toBe("5");
+      expect(parsedUrl.searchParams.get("maxTotalChargeUsd")).toBe("0.25");
       expect(parsedUrl.searchParams.get("timeout")).toBe("60");
       expect(parsedUrl.searchParams.get("memory")).toBe("1024");
 
-      // Verify Body strictly capped to 1 keyword and max 10 resultsPerPage
+      // Verify Body strictly capped to 1 keyword and max 5 resultsPerPage
       expect(capturedBody.searchQueries).toEqual(["เซรั่มลดสิว"]);
-      expect(capturedBody.resultsPerPage).toBe(10);
+      expect(capturedBody.resultsPerPage).toBe(5);
 
       // Verify all paid add-ons are strictly disabled
       expect(capturedBody.shouldDownloadVideos).toBe(false);
@@ -353,8 +353,8 @@ describe("Screen 03 — Creator Discovery Specification, State & Safety", () => 
       expect(capturedBody.shouldDownloadSlideshowImages).toBe(false);
 
       // Verify result cost controls metadata
-      expect(result.costControls.maxItems).toBe(10);
-      expect(result.costControls.maxTotalChargeUsd).toBe(0.5);
+      expect(result.costControls.maxItems).toBe(5);
+      expect(result.costControls.maxTotalChargeUsd).toBe(0.25);
       expect(result.costControls.paidAddonsDisabled).toBe(true);
     });
 
@@ -394,7 +394,7 @@ describe("Screen 03 — Creator Discovery Specification, State & Safety", () => 
         expect(json.ok).toBe(true);
         expect(json.data.searchKeyword).toBe("สกินแคร์");
         expect(capturedRequestBody.searchQueries).toEqual(["สกินแคร์"]);
-        expect(capturedRequestBody.resultsPerPage).toBe(10);
+        expect(capturedRequestBody.resultsPerPage).toBe(5);
       } finally {
         process.env.APIFY_API_TOKEN = originalToken;
       }
