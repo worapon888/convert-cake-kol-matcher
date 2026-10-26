@@ -1,0 +1,78 @@
+{
+  "sampleWebsiteUrl": "https://lumina-skincare-th.example.com",
+  "sampleFacebookPageUrl": "https://www.facebook.com/luminaskincareth",
+  "sampleWebsiteHtml": "<!DOCTYPE html><html lang=\"th\"><head><meta charset=\"utf-8\" /><title>Lumina Skin Thailand | เวชสำอางเพื่อผิวแพ้ง่ายและเป็นสิวง่าย</title><meta name=\"description\" content=\"Lumina Skin แบรนด์สกินแคร์เวชสำอางไทยที่พัฒนาร่วมกับผู้เชี่ยวชาญด้านผิวหนัง ปราศจากน้ำหอมและแอลกอฮอล์ สำหรับผิวบอบบางแพ้ง่ายในสภาพอากาศเมืองร้อน\" /><meta property=\"og:site_name\" content=\"Lumina Skin Thailand\" /></head><body><header><h1>Lumina Skin Thailand — Dermatologist-Tested Barrier Care</h1></header><main><section id=\"about\"><h2>เกี่ยวกับแบรนด์ Lumina Skin</h2><p>เกี่ยวกับเรา: Lumina Skin คือแบรนด์สกินแคร์เพื่อผิวแพ้ง่ายและผิวเป็นสิวง่ายที่คิดค้นมาเพื่อสภาพอากาศร้อนชื้นของประเทศไทย เน้นการเสริมเกราะป้องกันผิว (Skin Barrier) ด้วยส่วนผสมที่มีงานวิจัยรองรับ ปราศจากพาราเบน น้ำหอม และแอลกอฮอล์</p></section><section id=\"products\"><h2>ผลิตภัณฑ์หลักของเรา</h2><ul><li>Lumina Cica-Ceramide Barrier Serum — เซรั่มใบบัวบกและเซราไมด์เข้มข้น 5 ชนิด ช่วยปลอบประโลมผิวแดงระคายเคืองและลดรอยสิว</li><li>Lumina Invisible Aqua Sunscreen SPF50+ PA++++ — กันแดดเนื้อเซรั่มบางเบา ซึมไว ไม่วอก ไม่เทา ไม่อุดตันรูขุมขน เหมาะกับผิวมันและผิวเป็นสิวง่าย</li><li>Lumina Amino Gentle Gel Cleanser — เจลล้างหน้าค่า pH 5.5 ล้างสะอาดโดยไม่ทำลายความชุ่มชื้นผิว</li></ul></section></main></body></html>",
+  "sampleFacebookBlockedHtml": "<!DOCTYPE html><html><head><title>Facebook - log in or sign up</title></head><body>Please log in to continue.</body></html>",
+  "expectedBrandProfile": {
+    "brandName": "Lumina Skin Thailand",
+    "brandDescription": "Thai dermatologist-tested dermo-cosmetic skincare brand formulating fragrance-free, alcohol-free barrier-repair products for sensitive and acne-prone skin in humid tropical climates.",
+    "industry": "Beauty & Personal Care (Skincare / Dermo-cosmetics)",
+    "productCategories": [
+      "Facial Serum",
+      "Sunscreen / UV Protection",
+      "Facial Cleanser",
+      "Sensitive & Acne-Prone Skincare"
+    ],
+    "keyProductsOrServices": [
+      "Lumina Cica-Ceramide Barrier Serum",
+      "Lumina Invisible Aqua Sunscreen SPF50+ PA++++",
+      "Lumina Amino Gentle Gel Cleanser"
+    ],
+    "targetAudienceDescription": "Observed source facts: Consumers in Thailand with sensitive, easily irritated, oily, or acne-prone skin seeking fragrance-free and alcohol-free barrier skincare suited for hot, humid weather. (Specific age ranges, gender splits, or income brackets are not stated on the website.)",
+    "targetMarket": "Thailand",
+    "brandTone": [
+      "Trustworthy & Science-Backed",
+      "Gentle & Reassuring",
+      "Honest Ingredient Transparency"
+    ],
+    "contentThemes": [
+      "Skin barrier repair and calming redness",
+      "Lightweight non-comedogenic texture demos for humid Thai weather",
+      "Ingredient education (Ceramide, Cica, pH 5.5, fragrance-free)",
+      "Acne-prone skincare routines and honest before/after texture reviews"
+    ],
+    "idealCreatorCharacteristics": [
+      "Thai skincare creators who demonstrate real product textures (absorption, finish under sunlight) and discuss ingredients clearly",
+      "Creators addressing sensitive skin, acne recovery, or skin barrier care with credible, non-exaggerated claims",
+      "Authentic product reviewers on TikTok Thailand who engage with skincare Q&A in comments"
+    ],
+    "excludedCreatorCharacteristics": [
+      "Creators making miracle/overnight medical cure claims that violate Thai FDA cosmetic advertising rules",
+      "Accounts focused purely on unrelated comedy, gaming, or shock-value content without skincare credibility"
+    ],
+    "suggestedTikTokSearchKeywords": [
+      "รีวิวสกินแคร์ผิวแพ้ง่าย",
+      "เซรั่มเสริมเกราะป้องกันผิว",
+      "กันแดดเนื้อเซรั่มคนเป็นสิว",
+      "ป้ายยาสกินแคร์ลดสิวผิวแพ้ง่าย",
+      "เจลล้างหน้าลดสิวผิวแพ้ง่าย"
+    ],
+    "sourceReferences": [
+      {
+        "url": "https://lumina-skincare-th.example.com/",
+        "sourceType": "website",
+        "title": "Lumina Skin Thailand | เวชสำอางเพื่อผิวแพ้ง่ายและเป็นสิวง่าย",
+        "extractedFactsSummary": "Extracted brand name (Lumina Skin Thailand), fragrance-free/alcohol-free sensitive-skin positioning for Thailand's climate, and three hero SKUs (Cica-Ceramide Barrier Serum, Invisible Aqua Sunscreen SPF50+ PA++++, Amino Gentle Gel Cleanser)."
+      }
+    ],
+    "missingInformation": [
+      "Facebook Page content was restricted or inaccessible without authentication.",
+      "Retail product pricing and official TikTok Shop handle were not listed on the homepage.",
+      "Explicit customer age range or gender distribution was not stated in public source text."
+    ],
+    "confidenceNotes": {
+      "observedFacts": [
+        "Brand name is Lumina Skin Thailand.",
+        "Products are positioned as fragrance-free, alcohol-free, and paraben-free for sensitive and acne-prone skin in Thailand's humid climate.",
+        "Three core products are listed: Lumina Cica-Ceramide Barrier Serum, Lumina Invisible Aqua Sunscreen SPF50+ PA++++, and Lumina Amino Gentle Gel Cleanser."
+      ],
+      "inferredRecommendations": [
+        "Recommended creator profiles (ingredient-focused Thai skincare reviewers and texture-demo creators).",
+        "Suggested Thai TikTok search phrases targeting sensitive skin, barrier repair, and acne-safe sunscreen.",
+        "Exclusion of creators making exaggerated medical cure claims."
+      ],
+      "overallConfidence": "high",
+      "rationale": "Homepage provided clear brand positioning, formulation claims, and three concrete product descriptions in Thai and English, despite the Facebook Page requiring authentication."
+    }
+  }
+}
