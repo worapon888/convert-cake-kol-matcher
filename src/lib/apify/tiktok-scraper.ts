@@ -14,19 +14,32 @@ export const CLOCKWORKS_TIKTOK_SCRAPER_API_SLUG =
 
 /**
  * Input configuration schema for Apify Actor `clockworks/tiktok-scraper`.
+ *
+ * Strict Cost Control Constraints:
+ * - Maximum 1 search keyword per scrape run to prevent exponential charges.
+ * - Results per page capped at 10 items.
+ * - All paid media download add-ons (videos, covers, subtitles, slideshows) are strictly disabled.
  */
 export const ClockworksTikTokScraperInputSchema = z.object({
-  searchQueries: z.array(z.string().min(1)).optional(),
+  searchQueries: z
+    .array(z.string().min(1))
+    .max(1, "Strict cost limit: maximum 1 keyword per search run")
+    .optional(),
   hashtags: z.array(z.string().min(1)).optional(),
   profiles: z.array(z.string().min(1)).optional(),
-  resultsPerPage: z.number().int().min(1).max(100).default(10),
+  resultsPerPage: z
+    .number()
+    .int()
+    .min(1)
+    .max(10, "Strict cost limit: maximum 10 items per run")
+    .default(10),
   shouldDownloadVideos: z.boolean().default(false),
   shouldDownloadCovers: z.boolean().default(false),
   shouldDownloadSubtitles: z.boolean().default(false),
   shouldDownloadSlideshowImages: z.boolean().default(false),
 });
 
-export type ClockworksTikTokScraperInput = z.infer<
+export type ClockworksTikTokScraperInput = z.input<
   typeof ClockworksTikTokScraperInputSchema
 >;
 
@@ -42,6 +55,26 @@ export interface ApifyClientOptions {
    * Must be explicitly set to `true` when invoking `runClockworksTikTokScraper`.
    */
   allowPaidActorRun?: boolean;
+  /**
+   * Hard run-level limit on the number of items output by the Apify run.
+   * Passed directly to Apify via query param `maxItems`. Capped at 10.
+   */
+  maxItems?: number;
+  /**
+   * Maximum run duration in seconds before Apify kills the run.
+   * Passed directly to Apify via query param `timeout`. Capped at 120s.
+   */
+  timeoutSecs?: number;
+  /**
+   * Apify Billing Cap: Maximum total dollar charge allowed for this actor run.
+   * Passed directly to Apify via query param `maxTotalChargeUsd`. Default $0.50 USD.
+   */
+  maxTotalChargeUsd?: number;
+  /**
+   * Memory allocated to the actor in megabytes.
+   * Passed directly to Apify via query param `memory`. Default 1024 MB.
+   */
+  memoryMbytes?: number;
 }
 
 export class ApifyConfigurationError extends Error {
@@ -118,12 +151,21 @@ export async function fetchApifyDatasetById(
  * Calling this function without `{ allowPaidActorRun: true }` throws `ApifyPaidRunGuardError`
  * so paid runs are never triggered automatically during development, builds, or tests.
  */
+export interface ApifyRunCostControls {
+  maxItems: number;
+  timeoutSecs: number;
+  maxTotalChargeUsd: number;
+  memoryMbytes: number;
+  paidAddonsDisabled: boolean;
+}
+
 export async function runClockworksTikTokScraper(
   input: ClockworksTikTokScraperInput,
   options: ApifyClientOptions = {}
 ): Promise<{
   rawItems: ApifyTikTokVideoItem[];
   normalized: NormalizedTikTokDataset;
+  costControls: ApifyRunCostControls;
 }> {
   if (options.allowPaidActorRun !== true) {
     throw new ApifyPaidRunGuardError(
@@ -131,7 +173,24 @@ export async function runClockworksTikTokScraper(
     );
   }
 
-  const validatedInput = ClockworksTikTokScraperInputSchema.parse(input);
+  // Enforce strict limits: 1 keyword max, resultsPerPage <= 10, paid add-ons disabled
+  const queryList =
+    input.searchQueries && input.searchQueries.length > 0
+      ? [input.searchQueries[0].trim()]
+      : undefined;
+
+  const sanitizedInput: ClockworksTikTokScraperInput = {
+    ...input,
+    searchQueries: queryList,
+    resultsPerPage: Math.min(input.resultsPerPage ?? 10, 10),
+    shouldDownloadVideos: false,
+    shouldDownloadCovers: false,
+    shouldDownloadSubtitles: false,
+    shouldDownloadSlideshowImages: false,
+  };
+
+  const validatedInput =
+    ClockworksTikTokScraperInputSchema.parse(sanitizedInput);
   const token = resolveApifyToken(options.apiToken);
   const baseUrl = (options.baseUrl ?? "https://api.apify.com/v2").replace(
     /\/+$/,
@@ -139,7 +198,22 @@ export async function runClockworksTikTokScraper(
   );
   const fetchFn = options.fetchFn ?? fetch;
 
-  const url = `${baseUrl}/acts/${CLOCKWORKS_TIKTOK_SCRAPER_API_SLUG}/run-sync-get-dataset-items?clean=true&format=json`;
+  // Run-level cost caps passed directly to Apify REST API
+  const maxItems = Math.min(options.maxItems ?? 10, 10);
+  const timeoutSecs = Math.min(options.timeoutSecs ?? 60, 120);
+  const maxTotalChargeUsd = Math.min(options.maxTotalChargeUsd ?? 0.5, 1.0);
+  const memoryMbytes = options.memoryMbytes ?? 1024;
+
+  const queryParams = new URLSearchParams({
+    clean: "true",
+    format: "json",
+    maxItems: String(maxItems),
+    timeout: String(timeoutSecs),
+    maxTotalChargeUsd: maxTotalChargeUsd.toFixed(2),
+    memory: String(memoryMbytes),
+  });
+
+  const url = `${baseUrl}/acts/${CLOCKWORKS_TIKTOK_SCRAPER_API_SLUG}/run-sync-get-dataset-items?${queryParams.toString()}`;
   const response = await fetchFn(url, {
     method: "POST",
     headers: {
@@ -163,5 +237,12 @@ export async function runClockworksTikTokScraper(
   return {
     rawItems,
     normalized,
+    costControls: {
+      maxItems,
+      timeoutSecs,
+      maxTotalChargeUsd,
+      memoryMbytes,
+      paidAddonsDisabled: true,
+    },
   };
 }

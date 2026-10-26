@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BrandProfileSchema } from "@/lib/brand/schemas";
+import { TikTokCreatorSchema } from "@/lib/tiktok/schemas";
 
 export const MATCHING_ALGORITHM_VERSION = "1.0.0-mvp" as const;
 
@@ -175,6 +176,7 @@ export const RankedKOLRecommendationSchema = z.object({
   username: z.string().min(1),
   displayName: z.string().min(1),
   profileUrl: z.string().nullable(),
+  avatarUrl: z.string().nullable().optional(),
   followers: z.number().nullable(),
   matchScore: z.number().min(0).max(100),
   rank: z.number().int().positive(),
@@ -216,6 +218,7 @@ export const MatchingDataSourceModeSchema = z.enum([
   "fixture",
   "fixture_batch2",
   "fixture_combined",
+  "custom",
 ]);
 export type MatchingDataSourceMode = z.infer<
   typeof MatchingDataSourceModeSchema
@@ -253,6 +256,7 @@ export type KOLMatchingResult = z.infer<typeof KOLMatchingResultSchema>;
  */
 export const MatchingEvaluateRequestSchema = z.object({
   brandProfile: BrandProfileSchema,
+  creators: z.array(TikTokCreatorSchema).optional(),
   dataSource: MatchingDataSourceModeSchema.default("fixture"),
   executionMode: MatchingExecutionModeSchema.default("fixture_mock"),
   limit: z.number().int().min(1).max(20).default(10),

@@ -486,6 +486,7 @@ export function buildCreatorRecommendation(params: {
     username: creator.username,
     displayName: creator.nickname?.trim() || creator.username,
     profileUrl: creator.profileUrl,
+    avatarUrl: creator.avatarUrl ?? null,
     followers: creator.followers,
     matchScore: scoreBreakdown.finalMatchScore,
     rank: 1,

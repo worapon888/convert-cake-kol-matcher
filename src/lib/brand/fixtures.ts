@@ -70,3 +70,30 @@ export function buildControlledBrandAnalysisResult(): BrandAnalysisResult {
     analyzedAt: "2026-10-26T13:50:00.000Z",
   });
 }
+
+/**
+ * Returns a controlled BrandProfile matching the Screen 02 reference UI for Lumina Skin Thailand.
+ * Conforms strictly to BrandProfileSchema and preserves all backend fields.
+ */
+export function getDemoBrandProfile(): BrandProfile {
+  const baseFixture = loadBrandAnalyzerFixture().expectedBrandProfile;
+
+  return BrandProfileSchema.parse({
+    ...baseFixture,
+    brandName: "Lumina Skin Thailand",
+    industry: "Skincare & Beauty",
+    keyProductsOrServices: [
+      "สกินแคร์ดูแลผิวหน้า เช่น เซรั่ม ครีมกันแดด มอยส์เจอร์ไรเซอร์ และผลิตภัณฑ์บำรุงผิว",
+    ],
+    targetAudienceDescription:
+      "ผู้หญิงไทย อายุ 18–35 ปี สนใจดูแลผิว สุขภาพผิว และไลฟ์สไตล์ความงาม",
+    brandTone: ["Friendly"],
+    suggestedTikTokSearchKeywords: [
+      "สกินแคร์",
+      "รีวิวเซรั่ม",
+      "ดูแลผิว",
+      "ครีมกันแดด",
+      "ผิวใส",
+    ],
+  });
+}

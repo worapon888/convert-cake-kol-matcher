@@ -163,6 +163,7 @@ export const TikTokVideoSchema = z.object({
   isSponsored: z.boolean().nullable(),
   textLanguage: z.string().nullable(),
   engagementRateByViews: z.number().nullable(),
+  coverUrl: z.string().nullable().optional(),
 });
 
 export type TikTokVideo = z.infer<typeof TikTokVideoSchema>;
@@ -205,6 +206,8 @@ export const TikTokCreatorSchema = z.object({
   username: z.string().min(1),
   nickname: z.string().nullable(),
   profileUrl: z.string().nullable(),
+  avatarUrl: z.string().nullable().optional(),
+  totalProfileVideos: z.number().nullable().optional(),
   followers: z.number().nullable(),
   bio: z.string().nullable(),
   verified: z.boolean().nullable(),

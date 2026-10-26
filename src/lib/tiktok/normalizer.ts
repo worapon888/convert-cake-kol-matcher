@@ -145,6 +145,7 @@ export function normalizeTikTokVideo(rawItem: unknown): TikTokVideo {
     isSponsored: normalizeNullableBoolean(parsed.isSponsored),
     textLanguage: normalizeNullableString(parsed.textLanguage),
     engagementRateByViews,
+    coverUrl: normalizeNullableString(parsed.videoMeta?.coverUrl),
   };
 }
 
@@ -219,6 +220,23 @@ export function normalizeApifyDataset(
           profileUrl: item.authorMeta.profileUrl,
         };
       }
+      if (!existing.authorMeta.avatar && item.authorMeta.avatar) {
+        existing.authorMeta = {
+          ...existing.authorMeta,
+          avatar: item.authorMeta.avatar,
+        };
+      }
+      if (
+        (existing.authorMeta.video === null ||
+          existing.authorMeta.video === undefined) &&
+        item.authorMeta.video !== null &&
+        item.authorMeta.video !== undefined
+      ) {
+        existing.authorMeta = {
+          ...existing.authorMeta,
+          video: item.authorMeta.video,
+        };
+      }
     } else {
       creatorGroupMap.set(identity.creatorId, {
         authorMeta: item.authorMeta,
@@ -237,6 +255,8 @@ export function normalizeApifyDataset(
     const nickname = normalizeNullableString(group.authorMeta.nickName);
     const bio = normalizeNullableString(group.authorMeta.signature);
     const verified = normalizeNullableBoolean(group.authorMeta.verified);
+    const avatarUrl = normalizeNullableString(group.authorMeta.avatar);
+    const totalProfileVideos = normalizeNullableNumber(group.authorMeta.video);
 
     // Do NOT infer account type from `isAd`. Default to "unverified" unless manually reviewed.
     const accountTypeReviewStatus: AccountTypeReviewStatus =
@@ -258,6 +278,8 @@ export function normalizeApifyDataset(
       username,
       nickname,
       profileUrl,
+      avatarUrl,
+      totalProfileVideos,
       followers,
       bio,
       verified,

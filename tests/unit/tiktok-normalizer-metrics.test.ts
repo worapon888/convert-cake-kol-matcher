@@ -84,6 +84,12 @@ describe("Step 2 — TikTok Data Normalization and Creator Metrics", () => {
       expect(creator.profileUrl).toBe("https://www.tiktok.com/@thirisxstore");
       // authorMeta.fans -> followers
       expect(creator.followers).toBe(82400);
+      // authorMeta.avatar -> avatarUrl
+      expect(creator.avatarUrl).toBe(firstRaw.authorMeta.avatar);
+      // authorMeta.video -> totalProfileVideos
+      expect(creator.totalProfileVideos).toBe(1054);
+      // videoMeta.coverUrl -> coverUrl
+      expect(video.coverUrl).toBe(firstRaw.videoMeta?.coverUrl);
       // playCount -> views
       expect(video.views).toBe(3600000);
       // diggCount -> likes

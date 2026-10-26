@@ -114,9 +114,22 @@ export async function runKOLMatchingPipeline(
   );
   const executionMode: MatchingExecutionMode = request.executionMode;
 
+  const isCustomCreators =
+    Boolean(options.creators && options.creators.length > 0) ||
+    Boolean(request.creators && request.creators.length > 0);
+
+  const effectiveDataSource: MatchingDataSourceMode = isCustomCreators
+    ? "custom"
+    : request.dataSource;
+
   const { creators: rawCreators, sourceDatasetTimestamp } = options.creators
     ? { creators: [...options.creators], sourceDatasetTimestamp: null }
-    : loadCreatorsForDataSource(request.dataSource);
+    : request.creators && request.creators.length > 0
+      ? {
+          creators: [...request.creators],
+          sourceDatasetTimestamp: new Date().toISOString(),
+        }
+      : loadCreatorsForDataSource(request.dataSource);
 
   const deduplicated = deduplicateCreators(rawCreators);
   const maxBound = options.maxCandidatesToEvaluate ?? MAX_EVALUATED_CREATORS;
@@ -273,7 +286,7 @@ export async function runKOLMatchingPipeline(
     metadata: {
       algorithmVersion: MATCHING_ALGORITHM_VERSION,
       weights,
-      dataSource: request.dataSource,
+      dataSource: effectiveDataSource,
       executionMode,
       isOfflineDemoOutput: executionMode === "fixture_mock",
       sourceDatasetTimestamp,
