@@ -73,17 +73,17 @@ export default function Screen01BrandInputPage() {
             aria-valuenow={1}
             aria-valuemin={1}
             aria-valuemax={5}
-            className="flex-1 min-w-0 h-[11px] sm:h-[13px] rounded-full bg-[#FCE8ED] relative flex items-center"
+            className="flex-1 min-w-0 h-[11px] sm:h-[13px] rounded-full bg-[#FDE7EC] relative flex items-center"
           >
-            {/* Active Segment (~24% width) with smooth gradient & diffused blur aura */}
+            {/* Active Segment (~24% width) with bright pastel gradient & luminous diffused aura */}
             <div className="relative h-full w-[24%]">
-              {/* Soft blurred glow that bleeds around the active segment */}
+              {/* Soft bright blurred glow that bleeds around the active segment */}
               <div
-                className="absolute -inset-[3px] rounded-full bg-gradient-to-r from-[#455E9E] via-[#774E86] via-[#BD4E70] to-[#E56350] blur-[4px] opacity-75 pointer-events-none"
+                className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#6898FF] via-[#B378FF] via-[#FF66A6] to-[#FF8B6B] blur-[7px] opacity-90 pointer-events-none"
                 aria-hidden="true"
               />
-              {/* Main gradient pill */}
-              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#455E9E] via-[#774E86] via-[#BD4E70] to-[#E56350] shadow-[0_0_8px_rgba(229,99,80,0.45)]" />
+              {/* Main bright gradient pill */}
+              <div className="relative h-full w-full rounded-full bg-gradient-to-r from-[#5B8CFF] via-[#A668FF] via-[#FF5499] to-[#FF7B59] shadow-[0_0_12px_rgba(255,84,153,0.55)]" />
             </div>
           </div>
         </div>
