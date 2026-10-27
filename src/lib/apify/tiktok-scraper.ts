@@ -67,7 +67,7 @@ export interface ApifyClientOptions {
   timeoutSecs?: number;
   /**
    * Apify Billing Cap: Maximum total dollar charge allowed for this actor run.
-   * Passed directly to Apify via query param `maxTotalChargeUsd`. Default $0.25 USD.
+   * Passed directly to Apify via query param `maxTotalChargeUsd`. Default $0.50 USD (minimum enforced by Apify actor).
    */
   maxTotalChargeUsd?: number;
   /**
@@ -201,7 +201,7 @@ export async function runClockworksTikTokScraper(
   // Run-level cost caps passed directly to Apify REST API
   const maxItems = Math.min(options.maxItems ?? 5, 5);
   const timeoutSecs = Math.min(options.timeoutSecs ?? 60, 120);
-  const maxTotalChargeUsd = Math.min(options.maxTotalChargeUsd ?? 0.25, 0.5);
+  const maxTotalChargeUsd = options.maxTotalChargeUsd ?? 0.5;
   const memoryMbytes = options.memoryMbytes ?? 1024;
 
   const queryParams = new URLSearchParams({

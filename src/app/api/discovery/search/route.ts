@@ -147,7 +147,7 @@ async function executeCostControlledScrape(
         allowPaidActorRun: true,
         maxItems: 5, // Apify run-level item limit
         timeoutSecs: 60, // Apify 60s timeout guard
-        maxTotalChargeUsd: 0.25, // Apify billing cap ($0.25 USD max)
+        maxTotalChargeUsd: 0.5, // Apify billing cap ($0.50 USD minimal charge allowed by actor)
         memoryMbytes: 1024,
       };
 

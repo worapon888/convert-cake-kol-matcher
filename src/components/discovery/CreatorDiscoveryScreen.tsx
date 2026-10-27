@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { BrandProfile } from "@/lib/brand/schemas";
 import type { TikTokCreator } from "@/lib/tiktok/schemas";
 import { loadNormalizedTikTokFixture } from "@/lib/tiktok/fixtures";
@@ -83,7 +89,34 @@ export function CreatorDiscoveryScreen({
     return fixture.creators;
   }, [initialCreators]);
 
-  const [creators, setCreators] = useState<TikTokCreator[]>(defaultDataset);
+  // Check if session has live scraped creators
+  const cachedLiveScraped = useMemo(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem("holo_live_creators");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (
+            parsed &&
+            Array.isArray(parsed.creators) &&
+            parsed.creators.length > 0
+          ) {
+            return parsed as { keyword?: string; creators: TikTokCreator[] };
+          }
+        }
+      } catch {
+        // Ignore session parse error
+      }
+    }
+    return null;
+  }, []);
+
+  const [creators, setCreators] = useState<TikTokCreator[]>(() => {
+    if (cachedLiveScraped?.creators) {
+      return cachedLiveScraped.creators;
+    }
+    return defaultDataset;
+  });
   const [sortOption, setSortOption] = useState<SortOption>("dataset_order");
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -102,13 +135,24 @@ export function CreatorDiscoveryScreen({
   const [isSearchingLive, setIsSearchingLive] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchSuccessNotice, setSearchSuccessNotice] = useState<string | null>(
-    null
+    () => {
+      if (cachedLiveScraped?.creators) {
+        return `Loaded ${cachedLiveScraped.creators.length} real TikTok creators previously scraped via Apify for "${cachedLiveScraped.keyword || "your keyword"}".`;
+      }
+      return null;
+    }
   );
   const [matchingNotice, setMatchingNotice] = useState<string | null>(null);
+  const [isLiveScraped, setIsLiveScraped] = useState<boolean>(() => {
+    return Boolean(cachedLiveScraped?.creators);
+  });
+  const [activeLiveKeyword, setActiveLiveKeyword] = useState<string>(() => {
+    return cachedLiveScraped?.keyword || "";
+  });
+  const hasAutoSearchedRef = useRef(false);
 
   // AI Matching confirmation modal state
-  const [isConfirmMatchingModalOpen, setIsConfirmMatchingModalOpen] =
-    useState(false);
+  // (Direct transition to step 4 without popup)
 
   // Remove a keyword
   const handleRemoveKeyword = (indexToRemove: number) => {
@@ -176,56 +220,86 @@ export function CreatorDiscoveryScreen({
   }, [sortedCreators, isExpanded]);
 
   // Handle Live Scraping execution
-  const handleConfirmLiveSearch = async () => {
-    setIsSearchingLive(true);
-    setSearchError(null);
-    setSearchSuccessNotice(null);
+  const handleConfirmLiveSearch = useCallback(
+    async (overrideKeyword?: string) => {
+      const kwToSearch =
+        (overrideKeyword || selectedSearchKeyword || "").trim() ||
+        "รีวิวสกินแคร์";
+      setIsSearchingLive(true);
+      setSearchError(null);
+      setSearchSuccessNotice(null);
 
-    try {
-      const response = await fetch("/api/discovery/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keyword: selectedSearchKeyword,
-          confirmPaidRun: true,
-        }),
-      });
+      try {
+        const response = await fetch("/api/discovery/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            keyword: kwToSearch,
+            confirmPaidRun: true,
+          }),
+        });
 
-      const json = await response.json();
+        const json = await response.json();
 
-      if (!response.ok || !json.ok) {
-        const errMessage =
-          json?.error?.message ||
-          "Failed to perform live TikTok discovery. Reverting to saved dataset.";
-        setSearchError(errMessage);
-        return;
-      }
+        if (!response.ok || !json.ok) {
+          const errMessage =
+            json?.error?.message ||
+            "Failed to perform live TikTok discovery. Reverting to saved dataset.";
+          setSearchError(errMessage);
+          return;
+        }
 
-      if (json.data?.creators && Array.isArray(json.data.creators)) {
-        setCreators(json.data.creators);
-        setSearchSuccessNotice(
-          `Discovered ${json.data.creators.length} creators for "${json.data.searchKeyword}". Cost capped at max 10 items (${json.data.cached ? "cached" : "cost limited"}).`
+        if (json.data?.creators && Array.isArray(json.data.creators)) {
+          setCreators(json.data.creators);
+          setIsLiveScraped(true);
+          setActiveLiveKeyword(kwToSearch);
+          setSearchSuccessNotice(
+            `Discovered ${json.data.creators.length} real TikTok creators for "${json.data.searchKeyword}" via Apify (${json.data.cached ? "cached" : "live run"}).`
+          );
+          setIsSearchModalOpen(false);
+
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.setItem(
+                "holo_live_creators",
+                JSON.stringify({
+                  keyword: kwToSearch,
+                  creators: json.data.creators,
+                })
+              );
+            } catch {
+              // Ignore storage error
+            }
+          }
+        }
+      } catch {
+        setSearchError(
+          "Network connection error while contacting search API. Please check your connection."
         );
-        setIsSearchModalOpen(false);
+      } finally {
+        setIsSearchingLive(false);
       }
-    } catch {
-      setSearchError(
-        "Network connection error while contacting search API. Please check your connection."
-      );
-    } finally {
-      setIsSearchingLive(false);
+    },
+    [selectedSearchKeyword]
+  );
+
+  // Auto-trigger live Apify scraping on mount if no cached live data
+  useEffect(() => {
+    if (hasAutoSearchedRef.current) return;
+    hasAutoSearchedRef.current = true;
+
+    if (cachedLiveScraped) {
+      return;
     }
-  };
+
+    const timer = setTimeout(() => {
+      void handleConfirmLiveSearch(selectedSearchKeyword);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [cachedLiveScraped, handleConfirmLiveSearch, selectedSearchKeyword]);
 
   const handleContinue = () => {
-    setIsConfirmMatchingModalOpen(true);
-  };
-
-  const handleConfirmMatching = () => {
-    setIsConfirmMatchingModalOpen(false);
-    setMatchingNotice(
-      `Creator list confirmed (${Math.min(matchingReadyCreators.length, 10)} creators ready for matching). Excluded brand accounts will not be evaluated.`
-    );
     onContinueToMatching(matchingReadyCreators.slice(0, 10));
   };
 
@@ -260,14 +334,9 @@ export function CreatorDiscoveryScreen({
 
       {/* Top Card: TikTok Search Keywords */}
       <div className="w-full bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.025)] p-5 sm:p-7 mb-7 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="mb-4">
           <span className="text-xs sm:text-[13.5px] font-semibold text-slate-800 tracking-tight">
             TikTok Search Keywords
-          </span>
-
-          {/* Saved Apify data badge */}
-          <span className="self-start sm:self-auto inline-flex items-center text-[11px] sm:text-xs font-medium text-[#7C3AED] bg-[#F6F0FE] border border-[#E9D5FF] px-3 py-0.5 rounded-full">
-            Saved Apify data · Skincare sample
           </span>
         </div>
 
@@ -314,17 +383,59 @@ export function CreatorDiscoveryScreen({
           </button>
         </div>
 
-        {/* Disclaimer Bullet */}
-        <div className="mt-4 pt-3 border-t border-slate-50 flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
-          <span>
-            Offline preview from saved Apify response — not a live search for{" "}
-            <strong className="font-medium text-slate-600">
-              {brandProfile.brandName || "your brand"}
-            </strong>
-          </span>
+        {/* Source Status Bullet */}
+        <div className="mt-4 pt-3 border-t border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] sm:text-xs text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isLiveScraped
+                  ? "bg-emerald-500"
+                  : isSearchingLive
+                    ? "bg-amber-400 animate-pulse"
+                    : "bg-slate-300"
+              }`}
+            />
+            <span>
+              {isLiveScraped ? (
+                <>
+                  Live data scraped directly from TikTok via Apify for{" "}
+                  <strong className="font-semibold text-slate-800">
+                    &ldquo;{activeLiveKeyword || selectedSearchKeyword}&rdquo;
+                  </strong>
+                </>
+              ) : isSearchingLive ? (
+                "Connecting to Apify Actor in cloud & scraping TikTok..."
+              ) : (
+                <>
+                  Offline preview from saved Apify response — not a live search
+                  for{" "}
+                  <strong className="font-medium text-slate-600">
+                    {brandProfile.brandName || "your brand"}
+                  </strong>
+                </>
+              )}
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Live Loading Banner */}
+      {isSearchingLive && (
+        <div
+          role="status"
+          className="mb-6 p-4 rounded-3xl bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border border-purple-200 shadow-sm flex items-center gap-3.5 animate-pulse"
+        >
+          <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin shrink-0" />
+          <div className="text-xs sm:text-[13px] text-purple-950 font-medium">
+            <span>
+              กำลังดึงข้อมูลครีเอเตอร์จริงจาก TikTok ผ่าน{" "}
+              <strong>Apify Clockworks Scraper</strong> สำหรับคำค้นหา &ldquo;
+              {selectedSearchKeyword}&rdquo;... กรุณารอสักครู่ (ประมาณ 10-25
+              วินาที)
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Creator Discovery Preview Section Header */}
       <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -626,7 +737,7 @@ export function CreatorDiscoveryScreen({
               </button>
               <button
                 type="button"
-                onClick={handleConfirmLiveSearch}
+                onClick={() => handleConfirmLiveSearch()}
                 disabled={isSearchingLive}
                 className="px-5 py-2 rounded-full bg-gradient-to-r from-[#7462F6] via-[#D565A9] to-[#FF8266] text-white text-xs font-medium shadow-sm hover:opacity-95 transition-all disabled:opacity-60 flex items-center gap-1.5 cursor-pointer"
               >
@@ -638,72 +749,6 @@ export function CreatorDiscoveryScreen({
                 ) : (
                   <span>Confirm Live Search</span>
                 )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* AI Matching Confirmation Modal */}
-      {isConfirmMatchingModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/35 backdrop-blur-xs animate-in fade-in"
-        >
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 p-6">
-            <div className="w-10 h-10 rounded-2xl bg-[#F5F0FF] text-[#7C3AED] flex items-center justify-center text-lg mb-3">
-              ✨
-            </div>
-            <h3 className="text-base font-bold text-slate-900 mb-1">
-              Confirm AI Matching &amp; Ranking
-            </h3>
-            <p className="text-xs text-slate-500 mb-3.5 leading-relaxed">
-              Holo AI will evaluate creator content fit, category alignment, and
-              brand tone for {brandProfile.brandName || "your brand"} using live
-              OpenAI Structured Outputs.
-            </p>
-
-            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 mb-4 text-xs text-slate-700 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Target Brand:</span>
-                <span className="font-semibold text-slate-900 truncate max-w-[200px]">
-                  {brandProfile.brandName || "Active Brand"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Creators to Evaluate:</span>
-                <span className="font-semibold text-[#7C3AED]">
-                  {Math.min(matchingReadyCreators.length, 10)} creators (max 10)
-                </span>
-              </div>
-              {creators.length > matchingReadyCreators.length && (
-                <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                  <span>Excluded Brand Accounts:</span>
-                  <span>
-                    {creators.length - matchingReadyCreators.length} accounts
-                  </span>
-                </div>
-              )}
-              <div className="pt-1.5 border-t border-slate-200/60 text-[10.5px] text-slate-400">
-                Cost limit: capped at 10 creators. Calls live OpenAI API.
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsConfirmMatchingModalOpen(false)}
-                className="px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmMatching}
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-[#7462F6] via-[#D565A9] to-[#FF8266] text-white text-xs font-medium shadow-sm hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Confirm &amp; Run AI Matching →</span>
               </button>
             </div>
           </div>
