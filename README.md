@@ -1,304 +1,406 @@
-# Convert Cake KOL Matcher
+# Convert Cake — AI TikTok KOL Matcher
 
-**AI-powered TikTok KOL discovery, brand analysis, and influencer matching platform for the Thai market.**
+**AI-powered TikTok Key Opinion Leader (KOL) discovery, brand analysis, and influencer matching platform tailored for the Thai market.**
 
-> **Assessment Progress Notice (7-Day AI Engineer Assessment — Convert Cake)**
->
-> - **Step 1 (Completed):** Project scaffold, Next.js App Router, strict TypeScript, ESLint, Prettier, Husky pre-commit hooks.
-> - **Step 2 (Completed — `f7681f6`):** Real Apify (`clockworks/tiktok-scraper`) Zod schemas, data normalization (`TikTokVideo`, `TikTokCreator`, `CreatorMetrics`), pure metric calculation functions, fixture loaders, and guarded Apify client module.
-> - **Step 3 (Completed — `530df09`):** AI Brand Analyzer with SSRF-protected website content extraction, best-effort Facebook Page extraction, manual description fallback, OpenAI Responses API + Structured Outputs (`BrandProfileSchema`), and `POST /api/brands/analyze`.
-> - **Step 4 (Completed):** AI TikTok KOL Matching & Ranking Engine with deterministic Creator Qualification, OpenAI Content Fit Evaluator with evidence verification, pure TypeScript weighted scoring (`50/20/20/10`), missing-data coverage policy, single-video sample safeguards, `POST /api/matching/evaluate`, human-labeled benchmark cases, and `50/50` passing unit tests.
-> - **Pending (`TODO` — Step 5):** Final polished production dashboard, advanced filtering, analytics charts, and CSV export.
+[![Next.js](https://img.shields.io/badge/Next.js-16.4.3-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.3.0-blue?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-5.0.5-6E9F18?logo=vitest)](https://vitest.dev/)
+[![Tests](https://img.shields.io/badge/Tests-107%20Passing-brightgreen)](package.json)
+
+---
+
+## Assessment Submission Details
+
+| Field                      | Detail                                                                                                           |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| **Candidate Submission**   | Convert Cake AI Engineer Technical Assessment                                                                    |
+| **GitHub Repository**      | [https://github.com/worapon888/convert-cake-kol-matcher](https://github.com/worapon888/convert-cake-kol-matcher) |
+| **Loom Video Walkthrough** | `[Insert Loom Demo Video Link Here]` _(Placeholder for applicant recording)_                                     |
+| **Primary Workflow**       | 5-Step Guided Onboarding (`/` to `/?step=5`)                                                                     |
+| **Technical Test Bench**   | Offline Developer Test Bench at [`/dev`](http://localhost:3000/dev)                                              |
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview & Business Problem](#1-project-overview--business-problem)
-2. [Features & Implementation Status](#2-features--implementation-status)
-3. [System Architecture & Matching Pipeline](#3-system-architecture--matching-pipeline)
-4. [Step 4 — KOL Matching & Ranking Engine Specification](#4-step-4--kol-matching--ranking-engine-specification)
-5. [Step 3 — AI Brand Analyzer Specification](#5-step-3--ai-brand-analyzer-specification)
-6. [Step 2 — TikTok Data Schema, Field Mapping & Metric Formulas](#6-step-2--tiktok-data-schema-field-mapping--metric-formulas)
-7. [API Reference (`POST /api/brands/analyze` & `POST /api/matching/evaluate`)](#7-api-reference-post-apibrandsanalyze--post-apimatchingevaluate)
-8. [Prerequisites, Installation & Environment Variables](#8-prerequisites-installation--environment-variables)
-9. [Testing, Evaluation Benchmark & Controlled Live Execution](#9-testing-evaluation-benchmark--controlled-live-execution)
-10. [Known Limitations, Potential Biases & Security Safeguards](#10-known-limitations-potential-biases--security-safeguards)
+2. [Tech Stack](#2-tech-stack)
+3. [Prerequisites](#3-prerequisites)
+4. [Quick Start — Installation & Run (Windows & POSIX)](#4-quick-start--installation--run-windows--posix)
+5. [Environment Variables](#5-environment-variables)
+6. [Demo Mode vs. Live Mode](#6-demo-mode-vs-live-mode)
+7. [How to Use the Application](#7-how-to-use-the-application)
+8. [System Architecture & Scoring Methodology](#8-system-architecture--scoring-methodology)
+9. [Testing & Verification](#9-testing--verification)
+10. [Known Limitations & Security Safeguards](#10-known-limitations--security-safeguards)
+11. [Troubleshooting](#11-troubleshooting)
+12. [Key Technical Decisions](#12-key-technical-decisions)
 
 ---
 
 ## 1. Project Overview & Business Problem
 
-Marketing teams and agencies in Thailand face three recurring challenges when selecting TikTok Key Opinion Leaders (KOLs):
+Marketing teams and agencies in Thailand face severe friction when matching brands to TikTok creators:
 
-1. **Unstructured Brand Briefs:** Campaign managers start from a brand URL or product page and need structured positioning criteria and Thai TikTok discovery keywords.
-2. **Noisy Candidate Pools:** Search results mix independent creators with official brand storefronts (e.g., `@remo.thailand`, `@etudethailand`), retail curators (`@thedailypal`), creators who do not accept sponsored work (`"ไม่รับงานรีวิว"`), or non-Thai language creators (`textLanguage="my"`).
-3. **Single-Video & Vanity Metric Traps:** Raw follower counts and single viral videos can distort rankings if treated as representative creator-level averages.
+1. **Unstructured Brand Briefs:** Campaign managers typically start with just an external brand website or social link. They manually parse product positioning, target demographics, tone of voice, and relevant Thai search terms.
+2. **Noisy Search Candidates:** Scraping results for popular keywords (e.g., `"รีวิวสกินแคร์"`, `"เซรั่มลดสิว"`) frequently mix genuine individual creators with official brand storefronts (e.g., `@remo.thailand`), multi-brand retail curators, creators explicitly refusing commercial collaborations (`"ไม่รับงานรีวิว"`), or non-Thai language creators.
+3. **Vanity Metric Traps:** High follower counts or isolated viral video hits often deceive marketers, obscuring whether a creator consistently engages target buyers in the brand's niche.
 
-**Convert Cake KOL Matcher** addresses these challenges by separating **deterministic qualification and quantitative scoring** (in pure TypeScript) from **semantic content fit evaluation** (via OpenAI Structured Outputs with strict evidence verification).
+**Convert Cake KOL Matcher** resolves these bottlenecks by combining:
 
----
-
-## 2. Features & Implementation Status
-
-| Step       | Component                                                                   | Status        | Module / Location                                                                                                            |
-| ---------- | --------------------------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Step 1** | Next.js App Router, Strict TS, ESLint, Prettier, Husky                      | `Implemented` | [`package.json`](package.json), [`.husky/pre-commit`](.husky/pre-commit)                                                     |
-| **Step 2** | Apify `clockworks/tiktok-scraper` Schemas, Normalizer & Pure Metrics        | `Implemented` | [`src/lib/tiktok/`](src/lib/tiktok/), [`src/lib/apify/tiktok-scraper.ts`](src/lib/apify/tiktok-scraper.ts)                   |
-| **Step 3** | SSRF Guard, Website/FB Extractor, OpenAI Brand Analyzer & API               | `Implemented` | [`src/lib/brand/`](src/lib/brand/), [`src/app/api/brands/analyze/route.ts`](src/app/api/brands/analyze/route.ts)             |
-| **Step 4** | Creator Qualification, AI Content Fit Evaluator, Deterministic Scorer & API | `Implemented` | [`src/lib/matching/`](src/lib/matching/), [`src/app/api/matching/evaluate/route.ts`](src/app/api/matching/evaluate/route.ts) |
-| **Step 4** | Minimal Step 3 + Step 4 Test Interface                                      | `Implemented` | [`src/components/brand/BrandAnalyzerTestBench.tsx`](src/components/brand/BrandAnalyzerTestBench.tsx)                         |
-| **Step 5** | Final Production Dashboard, Filters & Export                                | `TODO`        | Planned for Step 5                                                                                                           |
+- **SSRF-Protected Brand Profiling:** Ingests public websites to synthesize structured brand personas and Thai discovery keywords using OpenAI Structured Outputs.
+- **Cost-Controlled TikTok Discovery:** Programmatically discovers active TikTok creators through Apify's Actor without expensive unconstrained scraping runs.
+- **Hybrid Deterministic & Semantic Scoring:** Evaluates creators with a pure TypeScript deterministic qualification pipeline (filtering brand accounts and review refusals) combined with OpenAI-evaluated semantic content relevance.
+- **Interactive Shortlisting & CSV Export:** Allows marketers to review scores, inspect cited video evidence, adjust candidate lists, and export clean campaign shortlists in one click.
 
 ---
 
-## 3. System Architecture & Matching Pipeline
+## 2. Tech Stack
 
-See [`docs/architecture.md`](docs/architecture.md) for the complete system architecture.
+The application is built on modern, minimal, and battle-tested production tooling. It deliberately avoids unneeded infrastructure layers (no external SQL/NoSQL databases, Docker, or Redis instances are required; in-memory caching and browser session state handle all persistence):
 
-```text
-BrandProfile (Step 3)  +  Normalized TikTok Dataset (Step 2)
-                             |
-                             v
-            1. Creator Deduplication & Qualification
-               (src/lib/matching/qualification.ts)
-               -> Separates `excluded` (brand accounts / review refusals)
-                  from `eligible` and `needs_review`
-                             |
-                             v
-            2. AI Content Relevance Evaluation
-               (src/lib/matching/content-evaluator.ts)
-               -> OpenAI Responses API + Structured Outputs (or `fixture_mock`)
-               -> Verifies cited videoId / videoUrl against actual input
-                             |
-                             v
-            3. Deterministic Score Calculation
-               (src/lib/matching/scoring.ts)
-               -> 50% Content Fit | 20% Market Fit | 20% Performance Fit | 10% Suitability
-               -> Applies 0.75x single-video provisional cap & missing-data coverage factor
-                             |
-                             v
-            4. Deterministic Ranking + Evidence + Confidence
-               (src/lib/matching/engine.ts)
-               -> Returns `recommendations` + auditable `excludedCreators`
-```
+| Layer                 | Technology                                                       | Version              | Purpose in Codebase                                                          |
+| :-------------------- | :--------------------------------------------------------------- | :------------------- | :--------------------------------------------------------------------------- |
+| **Framework**         | [Next.js](https://nextjs.org/)                                   | `16.4.3`             | App Router, Server-side API Routes (`/api/*`), Turbopack compiler            |
+| **UI Library**        | [React](https://react.dev/)                                      | `19.3.0`             | Client components, responsive state management, and modern hooks             |
+| **Styling**           | [Tailwind CSS](https://tailwindcss.com/)                         | `^4.0.0`             | Responsive layout, modern gradients, and micro-interactions                  |
+| **Language**          | [TypeScript](https://www.typescriptlang.org/)                    | `^5.0.0`             | Strict type checking (`tsconfig.json` with strict mode enabled)              |
+| **Validation**        | [Zod](https://zod.dev/)                                          | `^4.6.7`             | Runtime request/response schema parsing and OpenAI Structured Output schemas |
+| **AI Evaluation**     | [OpenAI SDK](https://github.com/openai/openai-node)              | `^7.43.0`            | GPT-4o-mini client with native Structured Outputs via Responses API          |
+| **Scraper Ingestion** | [Apify REST API](https://apify.com/)                             | REST v2              | Connects to `clockworks/tiktok-scraper` with strict runtime and billing caps |
+| **Testing**           | [Vitest](https://vitest.dev/)                                    | `^5.0.5`             | Fast unit & integration test runner, fixture-based assertion suite           |
+| **Code Quality**      | [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/) | `^9.0.0` / `^3.9.10` | Code formatting, React Hook rule enforcement, and Husky pre-commit hooks     |
+| **Package Manager**   | [pnpm](https://pnpm.io/)                                         | `10.24.0`            | Deterministic dependency resolution via Corepack                             |
 
 ---
 
-## 4. Step 4 — KOL Matching & Ranking Engine Specification
+## 3. Prerequisites
 
-### 4.1 Deterministic Creator Qualification (`src/lib/matching/qualification.ts`)
+Before running the application, ensure the following tools are installed:
 
-Evaluates each deduplicated creator before AI scoring and returns `status` (`eligible` | `needs_review` | `excluded`), `accountType` (`individual_creator` | `brand_account` | `unknown`), `collaborationAvailability` (`open_to_collab` | `restricted` | `unknown`), `marketRelevance` (`relevant` | `uncertain` | `not_observed`), `reasonCodes`, `evidence`, and `manualReviewRequired`:
+- **Git:** Version `2.30+`
+- **Node.js:** Version `^20.0.0` or `^22.0.0` (Node.js 22 LTS is verified and recommended)
+- **pnpm:** Version `10.24.0` (managed via Node.js Corepack)
 
-- **Brand-Owned Account Detection (`excluded`):**
-  - Never inferred from `isAd` (`@etudethailand` has `isAd=false` yet is an official brand account, while individual creators like `@zzdaozz` have `isAd=true`).
-  - Uses explicit profile declarations (`"ช่องบริษัท"`, `"Official TikTok"`, `"OFFICIAL STORE"`, or manual override) to classify `accountType: "brand_account"` and exclude from independent creator rankings while retaining in `excludedCreators`.
-  - Ambiguous retail/importer/curator profiles (`@thedailypal`, `@thirisxstore`) are marked `needs_review` with `AMBIGUOUS_STORE_OR_CURATOR_HANDLE`.
-- **Collaboration Restrictions (`excluded` vs. `open_to_collab` vs. `unknown`):**
-  - Profiles explicitly refusing paid reviews (`"ไม่รับงานรีวิว"`, `"งดรับงาน"`, `"ไม่รับสปอน"`) are classified as `restricted` and `excluded`.
-  - Profiles with explicit work contact (`"ติดต่องาน"`, `"For work"`, `"Working ID line"`) are classified as `open_to_collab`.
-  - Profiles with empty/null bio (`@lsabella5733`) or no collaboration statement are classified as `unknown` (`needs_review`) — never assumed open to collaboration.
-- **Thai Market Relevance:**
-  - Evaluates Thai script (`[\u0E00-\u0E7F]`) in captions, hashtags, and bios alongside `textLanguage`.
-  - Treats language as a content-level market signal, **never** verified follower geography.
-  - Non-Thai or uncertain language profiles (`@honestglowup5` with `textLanguage="my"`, `@nnampunnn` with `textLanguage="un"`) are marked `uncertain` / `not_observed` (`needs_review`), not silently fabricated or auto-excluded.
+### Activating pnpm via Corepack
 
-### 4.2 OpenAI Content Fit Evaluator & Evidence Verification (`src/lib/matching/content-evaluator.ts`)
-
-- Uses `client.responses.parse` + `zodTextFormat(CreatorContentEvaluationSchema, "creator_content_evaluation")`.
-- Evaluates 4 rubric dimensions (`categoryRelevanceScore`, `productRelevanceScore`, `contentStyleScore`, `marketFitScore`), plus `strengths`, `concerns`, `explanation`, `supportingEvidence`, `missingEvidence`, and `confidenceLevel`.
-- **Anti-Hallucination Evidence Guard (`validateAndSanitizeContentEvaluation`):** Validates every `supportingEvidence` item's `videoId` and `videoUrl` against the creator's actual sampled videos. Any unsupported reference is stripped with an explicit warning.
-- **No Vision / Transcript Usage:** Evaluates strictly public profile metadata, bios, captions, and hashtags without `aiVideoDescription`, video downloads, or transcripts.
-
-### 4.3 Deterministic Scoring Formula & Missing-Data Policy (`src/lib/matching/scoring.ts`)
-
-OpenAI evaluates semantic relevance; **pure TypeScript** computes all normalized component scores and the final weighted ranking score.
-
-#### Initial MVP Weights (Configurable)
-
-| Dimension                                    | Default Weight ($w_d$) | Source & Formula                                                                                                     |
-| -------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Content Fit ($S\_{\text{content}}$)**      | `50%` (`0.50`)         | $0.40 \cdot \text{CategoryRelevance} + 0.35 \cdot \text{ProductRelevance} + 0.25 \cdot \text{ContentStyle}$          |
-| **Market Fit ($S\_{\text{market}}$)**        | `20%` (`0.20`)         | $0.50 \cdot S_{\text{marketSignal}} + 0.50 \cdot S_{\text{aiMarketFit}}$ (`null` if unobserved)                      |
-| **Performance Fit ($S\_{\text{perf}}$)**     | `20%` (`0.20`)         | $\alpha_{\text{sample}} \cdot (0.60 \cdot S_{\text{ER}} + 0.40 \cdot S_{\text{views}})$ (`null` if views/ER missing) |
-| **Creator Suitability ($S\_{\text{suit}}$)** | `10%` (`0.10`)         | `95` (`open_to_collab` creator), `70` (handle ambiguity), `45` (unconfirmed), `null` (missing bio)                   |
-
-#### Outlier-Resistant Performance Subscores & Single-Video Reliability Cap
-
-1. **Log-Saturating Engagement Score ($S\_{\text{ER}} \in [0, 100]$):**
-   $$S_{\text{ER}} = \min\left(100, \max\left(0, \frac{\ln(1 + 100 \cdot \text{ER})}{\ln(1 + 15)} \times 100\right)\right)$$
-   Prevents extreme single-post viral engagement (e.g., `21%`) from linearly dwarfing normal strong engagement (`3%–8%`).
-2. **Log10 View Reach Score ($S\_{\text{views}} \in [0, 100]$):**
-   $$S_{\text{views}} = \min\left(100, \max\left(0, \frac{\log_{10}(\max(\text{medianViews}, 100)) - 2}{\log_{10}(5,000,000) - 2} \times 100\right)\right)$$
-   Uses `medianViews` (never raw follower count as a linear factor).
-3. **Single-Video Provisional Cap ($\alpha\_{\text{sample}}$):**
-   Because every creator in the current 10-video fixture has only `1` sampled video (`sampledVideosCount = 1`), $\alpha_{\text{sample}} = 0.75$ (`isProvisionalSingleVideo = true`, compared to `0.88` for 2 videos and `1.00` for $\ge 3$ videos), and overall `confidenceLevel` is capped at `"medium"`.
-
-#### Missing-Data Policy
-
-- Missing dimensions remain `null` in `scoreBreakdown` and are listed in `missingComponents` (never treated as `0` and never fabricated).
-- Let $O = \{ d \mid S_d \neq \text{null} \}$ and $\text{Coverage} = \sum_{d \in O} w_d$:
-  $$\text{RawWeightedScore} = \frac{\sum_{d \in O} w_d S_d}{\text{Coverage}}, \quad \text{FinalMatchScore} = \text{RawWeightedScore} \times (0.85 + 0.15 \cdot \text{Coverage})$$
-- This ensures a creator with missing metrics is neither penalized as `0` nor ranked with the same certainty as a creator with `100%` data coverage.
-
-#### Deterministic Tie-Breaking Order
-
-1. `matchScore` descending
-2. `scoreBreakdown.contentFitScore` descending
-3. `scoreBreakdown.observedWeightCoverage` descending
-4. `creatorId` lexical ascending
-
----
-
-## 5. Step 3 — AI Brand Analyzer Specification
-
-Implemented in [`src/lib/brand/`](src/lib/brand/) and `POST /api/brands/analyze`:
-
-- Extracts public website signals (`<title>`, meta description, headings, about/positioning snippets, product/service snippets, and up to 2 relevant same-origin pages) with SSRF protection (`src/lib/brand/ssrf.ts`).
-- Performs best-effort OpenGraph extraction on optional Facebook Page URLs and falls back to `manualDescription` when external pages are blocked.
-- Uses OpenAI Responses API (`client.responses.parse`) + `zodTextFormat(BrandProfileSchema, "brand_profile")`.
-
----
-
-## 6. Step 2 — TikTok Data Schema, Field Mapping & Metric Formulas
-
-Implemented in [`src/lib/tiktok/`](src/lib/tiktok/):
-
-- Maps Apify `clockworks/tiktok-scraper` fields (`id` → `videoId`, `text` → `caption`, `webVideoUrl` → `videoUrl`, `authorMeta.id` → `creatorId` with `authorMeta.name` fallback, `authorMeta.fans` → `followers`, `playCount` → `views`, `diggCount` → `likes`, `commentCount` → `comments`, `shareCount` → `shares`, `createTimeISO` → `publishedAt`, `hashtags[].name` → `hashtags`).
-- Preserves missing metrics as `null`, retains `isAd`, and never invents audience demographics (`audienceDemographics: null`).
-
----
-
-## 7. API Reference (`POST /api/brands/analyze` & `POST /api/matching/evaluate`)
-
-### `POST /api/matching/evaluate`
-
-**Request:**
-
-```json
-{
-  "brandProfile": { "...BrandProfile from Step 3..." },
-  "dataSource": "fixture",
-  "executionMode": "fixture_mock",
-  "limit": 10
-}
-```
-
-- `executionMode`:
-  - `"fixture_mock"` (default): Deterministic offline evaluation using saved test evaluations in [`src/data/fixtures/kol-matching-fixture.json`](src/data/fixtures/kol-matching-fixture.json). Incurs `0` OpenAI API cost and sets `metadata.isOfflineDemoOutput = true`.
-  - `"live_ai"`: Calls the server-side OpenAI Responses API evaluator for each qualified creator. Never silently substitutes mock data if OpenAI fails.
-
-**Response (`200 OK` — Actual Excerpt from Primary Fixture):**
-
-```json
-{
-  "ok": true,
-  "data": {
-    "metadata": {
-      "algorithmVersion": "1.0.0-mvp",
-      "weights": {
-        "contentFit": 0.5,
-        "marketFit": 0.2,
-        "performanceFit": 0.2,
-        "creatorSuitability": 0.1
-      },
-      "dataSource": "fixture",
-      "executionMode": "fixture_mock",
-      "isOfflineDemoOutput": true,
-      "totalCandidatesEvaluated": 10,
-      "recommendedCount": 9,
-      "excludedCount": 1,
-      "manualReviewCount": 9
-    },
-    "recommendations": [
-      {
-        "creatorId": "6795513398643147778",
-        "username": "zzdaozz",
-        "displayName": "Dao Simasthien🫶🏻",
-        "profileUrl": "https://www.tiktok.com/@zzdaozz",
-        "followers": 1600000,
-        "matchScore": 83.24,
-        "rank": 1,
-        "qualificationStatus": "eligible",
-        "confidenceLevel": "medium",
-        "requiresManualReview": true,
-        "sampledVideosCount": 1,
-        "supportingVideoUrls": [
-          "https://www.tiktok.com/@zzdaozz/video/7688698184318651669"
-        ]
-      }
-    ],
-    "excludedCreators": [
-      {
-        "creatorId": "7011455597325812762",
-        "username": "remo.thailand",
-        "displayName": "Remo Thailand",
-        "exclusionSummary": "Excluded @remo.thailand: Identified as an official brand or company storefront account rather than an independent creator."
-      }
-    ]
-  }
-}
-```
-
----
-
-## 8. Prerequisites, Installation & Environment Variables
+Node.js comes bundled with Corepack. Enable it to ensure the exact specified pnpm version is used:
 
 ```bash
+corepack enable
+corepack prepare pnpm@10.24.0 --activate
+```
+
+Verify your environment:
+
+```bash
+node -v   # Should output v20.x or v22.x
+pnpm -v   # Should output 10.24.0
+```
+
+---
+
+## 4. Quick Start — Installation & Run (Windows & POSIX)
+
+Follow these verified commands to clone, configure, and start the application locally:
+
+### Using Bash / macOS / Linux / PowerShell:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/worapon888/convert-cake-kol-matcher.git
+cd convert-cake-kol-matcher
+
+# 2. Enable Corepack and install dependencies
+corepack enable
 pnpm install
+
+# 3. Create your local environment configuration file
 cp .env.example .env.local
+
+# 4. Start the development server
+pnpm dev
 ```
 
-| Variable                   | Required                  | Default       | Description                                                        |
-| -------------------------- | ------------------------- | ------------- | ------------------------------------------------------------------ |
-| `OPENAI_API_KEY`           | Required for Live AI Mode | —             | Server-side OpenAI API key (`sk-...`)                              |
-| `OPENAI_MODEL`             | Optional                  | `gpt-4o-mini` | Structured Outputs model (`gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4o`) |
-| `APIFY_API_TOKEN`          | Optional                  | —             | Guarded Apify token for existing dataset fetches                   |
-| `NEXT_PUBLIC_USE_FIXTURES` | Optional                  | `true`        | Uses local fixtures by default                                     |
+### Using Windows Command Prompt (`cmd.exe`):
+
+```cmd
+git clone https://github.com/worapon888/convert-cake-kol-matcher.git
+cd convert-cake-kol-matcher
+corepack enable
+pnpm install
+copy .env.example .env.local
+pnpm dev
+```
+
+Open your browser at:
+
+- **Main Application (5-Step Onboarding):** [http://localhost:3000](http://localhost:3000)
+- **Technical Test Bench (Offline Demo):** [http://localhost:3000/dev](http://localhost:3000/dev)
 
 ---
 
-## 9. Testing, Evaluation Benchmark & Controlled Live Execution
+## 5. Environment Variables
 
-### Automated Verification Commands (0 API Cost)
+All external service credentials reside strictly on the server side and are never bundled into client-side JavaScript. Only 3 variables are recognized and utilized by the application:
+
+### `.env.example` Reference
+
+```env
+# =============================================================================
+# Convert Cake KOL Matcher — Environment Configuration Template
+# Copy this file to `.env.local` and add your credentials.
+# Never commit `.env.local` or real API keys to version control.
+# =============================================================================
+
+# [Required for Live AI Analysis & KOL Matching — Steps 1 & 4]
+# OpenAI API Key used by official `openai` SDK (Structured Outputs)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# [Optional — OpenAI Model supporting Structured Outputs (default: gpt-4o-mini)]
+OPENAI_MODEL=gpt-4o-mini
+
+# [Required for Live TikTok Scraping — Step 3]
+# Apify API Token for running `clockworks/tiktok-scraper`
+APIFY_API_TOKEN=your_apify_api_token_here
+```
+
+### Variable Details & Security Enforcement
+
+| Variable Name     | Required For            | Default Value | Purpose                                                                                 |
+| :---------------- | :---------------------- | :------------ | :-------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`  | Live Mode (Steps 1 & 4) | _None_        | Server-side key for analyzing brand website text and scoring creator content relevance. |
+| `OPENAI_MODEL`    | Live Mode (Steps 1 & 4) | `gpt-4o-mini` | Specifies the OpenAI model supporting Structured Outputs (`gpt-4o-mini` or `gpt-4o`).   |
+| `APIFY_API_TOKEN` | Live Mode (Step 3)      | _None_        | Server-side token authorizing scraper execution on Apify Cloud.                         |
+
+### Security Checklist
+
+- `.env.local` is explicitly listed in `.gitignore` and is never committed to Git.
+- API keys are accessed only in server-side API routes (`src/app/api/*`) and internal libraries (`src/lib/*`).
+- No client component uses `NEXT_PUBLIC_` for secret tokens; client bundles contain zero credentials.
+- Note: Variables not referenced by source code (such as unused fixture flags) are deliberately omitted.
+
+---
+
+## 6. Demo Mode vs. Live Mode
+
+The repository supports both offline zero-cost evaluation and full live cloud execution. Please review the capabilities of each mode below:
+
+### 6.1 Demo Mode (Offline Testing without API Keys)
+
+Reviewers who do not provide `OPENAI_API_KEY` or `APIFY_API_TOKEN` can evaluate the system using the following entry points:
+
+1. **Developer Test Bench (`/dev` — Full Offline Evaluation):**
+   - Navigate to [http://localhost:3000/dev](http://localhost:3000/dev).
+   - Click **"Load Controlled Fixture"** to populate a verified Thai brand profile (`brand-analyzer-fixture.json`).
+   - In the **Step 4 KOL Matching** section, keep the execution mode set to **`fixture_mock`**.
+   - Click **"Run Step 4 KOL Matching"**. The engine will execute deterministic qualification, apply mock semantic evaluations, and compute pure TypeScript scores (`50/20/20/10`) against local datasets—**0 external API calls, 0 USD spent**.
+2. **Automated Unit Testing (`pnpm test`):**
+   - Runs **107 unit tests** across all 5 screens, normalization algorithms, scoring formulas, and mock APIs completely offline without network calls.
+3. **Step 3 Discovery Screen Fallback:**
+   - In the main wizard (`/?step=3`), if `APIFY_API_TOKEN` is missing, the system catches the error and safely falls back to displaying the curated local dataset (`normalized-tiktok-fixture.json`), clearly labeling it with an offline preview notice.
+
+> ⚠️ **Important Note on Main Wizard Offline Limits:**
+> In the main 5-step wizard (`http://localhost:3000`), **Step 1 (Brand Analysis)** and **Step 4 (Live AI Matching)** call OpenAI Structured Outputs by design. If `OPENAI_API_KEY` is not provided in `.env.local`, Step 1 and Step 4 will display an explicit configuration error banner (`OPENAI_CONFIGURATION_ERROR`). To test the end-to-end matching algorithms completely offline without an API key, reviewers should use the **Developer Test Bench at [`/dev`](http://localhost:3000/dev)**.
+
+### 6.2 Live Mode (Real Cloud Ingestion & AI Scoring)
+
+When valid API keys are configured in `.env.local`:
+
+1. **Step 1 Live Website Extraction:** Enter any live public URL (e.g., `https://herhyness-intl.com`). The server scrapes public body text (protected by SSRF validation) and calls OpenAI GPT-4o-mini to synthesize structured brand facts and suggested TikTok keywords.
+2. **Step 3 Live Apify TikTok Scraping:**
+   - The application automatically invokes `POST /api/discovery/search` with the brand's primary keyword.
+   - Calls the Apify Actor `clockworks/tiktok-scraper` in the cloud.
+   - **Strict Cost Caps:** Capped at **1 keyword per run**, **max 5 items**, **60s timeout**, **$0.50 USD hard billing cap**, and **paid media download add-ons disabled** (no video or cover binary downloads).
+   - Results are cached in server memory for 1 hour and saved to browser session storage to prevent duplicate charges upon page refresh.
+3. **Step 4 Live OpenAI KOL Matching:**
+   - Evaluates up to 10 qualified creators using OpenAI Structured Outputs.
+   - Synthesizes semantic fit, checks video ID evidence citations, and returns rationale notes.
+
+---
+
+## 7. How to Use the Application
+
+The user experience follows a 5-step guided wizard:
+
+```mermaid
+flowchart LR
+    S1["1. Brand Input"] --> S2["2. Profile Review"] --> S3["3. Creator Discovery"] --> S4["4. AI Matching"] --> S5["5. Shortlist & Export"]
+```
+
+### Step 1: Brand Input (`/?step=1`)
+
+- Enter your public brand website URL (e.g., `https://herhyness-intl.com`).
+- _Alternative:_ If the brand lacks a website, click **"Don't have a website"** to open a modal and submit a manual product/brand description.
+- Click **"Analyze website →"** to trigger AI extraction. _(Requires `OPENAI_API_KEY`)_
+
+### Step 2: Brand Profile Review (`/?step=2`)
+
+- Review extracted brand persona: Brand Name, Industry, Tone of Voice, Target Market (Thailand), and Target Audience Description.
+- Inspect and customize the **Suggested TikTok Search Keywords** chips (these drive the creator discovery stage).
+- Click **"Confirm & Discover Creators →"** to proceed. _(Client-side state, no API call)_
+
+### Step 3: TikTok Creator Discovery (`/?step=3`)
+
+- The system triggers a live search using the primary brand keyword via Apify.
+- Displays creator cards in a 3-column grid featuring follower counts, sampled video views, sample engagement rates (ER), and TikTok bios.
+- Automatically flags account types: isolates official brand storefronts (`@remo.thailand`) and flags profiles needing manual review.
+- Click **"Continue to matching →"** to transition directly to AI evaluation. _(Falls back to saved fixture if Apify token is missing)_
+
+### Step 4: AI Matching & Ranking (`/?step=4`)
+
+- Automatically initiates the matching pipeline for up to 10 qualified creators.
+- Displays match scores (0–100%), overall recommendation tier (`Strong Match`, `Good Match`, `Moderate Match`, or `Needs Review`), and detailed radar breakdown.
+- Click any creator card to inspect cited video evidence, reasoning rationale, and audit warnings.
+- Select creators using checkboxes and click **"Continue to Shortlist →"**. _(Requires `OPENAI_API_KEY`)_
+
+### Step 5: Creator Shortlist & CSV Export (`/?step=5`)
+
+- Review final shortlisted candidates and review total estimated reach and average ER.
+- Click **"Export Shortlist (CSV)"** to download `convert-cake-kol-shortlist.csv` formatted with creator usernames, profile URLs, match scores, qualification statuses, and performance metrics. _(Client-side generation, no API call)_
+
+---
+
+## 8. System Architecture & Scoring Methodology
+
+### 8.1 End-to-End Pipeline
+
+```
+[Brand Input URL / Text]
+         │
+         ▼
+[SSRF Validation & HTML Extraction] ──▶ [OpenAI Structured Outputs] ──▶ [BrandProfile]
+                                                                               │
+[TikTok Search via Apify] ──▶ [Data Normalizer] ──▶ [TikTokCreator Records] ───┘
+                                                           │
+                                                           ▼
+                                      [Deterministic Creator Qualification]
+                                            ├─ Excluded: Brand Accounts / Review Refusals
+                                            └─ Eligible / Needs Review
+                                                           │
+                                                           ▼
+                                      [OpenAI Content Relevance Evaluator]
+                                      (Category Fit + Product Fit + Style Fit)
+                                                           │
+                                                           ▼
+                                      [Pure TypeScript Weighted Scoring Engine]
+                                      (50% Content + 20% Market + 20% ER + 10% Suitability)
+                                                           │
+                                                           ▼
+                                      [Ranked Recommendations + Evidence Citations]
+                                                           │
+                                                           ▼
+                                      [Shortlist & Client-Side CSV Export]
+```
+
+### 8.2 API Route Reference
+
+- **`POST /api/brands/analyze`**: Accepts `{ websiteUrl, targetMarket }` or `{ manualDescription }`. Extracted web content is verified against private IP / SSRF ranges before passing to OpenAI GPT-4o-mini.
+- **`POST /api/discovery/search`**: Accepts `{ keyword, confirmPaidRun: true }`. Runs Apify Actor `clockworks/tiktok-scraper` with cost controls or serves from in-memory cache.
+- **`POST /api/matching/evaluate`**: Accepts `{ brandProfile, creators, executionMode }`. Executes deterministic qualification, invokes OpenAI for semantic content grading, and computes composite match scores.
+
+### 8.3 Scoring Weights Breakdown
+
+Final creator match scores (0–100) are computed deterministically in pure TypeScript (`src/lib/matching/scoring.ts`):
+
+$$\text{Final Score} = 0.50 \times \text{Content Fit} + 0.20 \times \text{Market Fit} + 0.20 \times \text{Performance Fit} + 0.10 \times \text{Creator Suitability}$$
+
+1. **Content Fit (50% Weight):**
+   - Synthesized from OpenAI rubric: `0.40 * Category Relevance + 0.35 * Product Relevance + 0.25 * Content Style Fit`.
+   - Requires valid video ID citation; fabricated references are flagged during audit.
+2. **Market Fit (20% Weight):**
+   - Assesses Thai language presence in video captions, Thai hashtags, and regional audience alignment.
+3. **Performance Fit (20% Weight):**
+   - Calculates Engagement Rate by Views: $(\text{Likes} + \text{Comments} + \text{Shares}) / \text{Views}$.
+   - Evaluated against standard Thai TikTok benchmarks (Nano/Micro: 3–6%, Mid: 2–4%).
+4. **Creator Suitability (10% Weight):**
+   - Commercial openness: Checks for bio contact channels (`"ติดต่องาน"`, `"LINE"`, email).
+   - Penalizes ambiguous brand affiliate accounts.
+
+### 8.4 Single-Video Sample Safeguard
+
+Because initial TikTok scraping ingests a limited post sample per creator (1–5 videos), treating a single post's metrics as representative of lifetime performance introduces statistical bias. The system enforces:
+
+- An automatic **`0.75x` provisional confidence factor** on performance subscores when `isSingleVideoSample: true`.
+- An explicit user-facing disclaimer: _"Single-video sample only: metrics reflect a single post and must not be presented as representative creator-level performance."_
+
+---
+
+## 9. Testing & Verification
+
+The project includes strict verification scripts in `package.json`:
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
+# 1. Check code formatting
 pnpm format:check
+
+# 2. Run static ESLint validation
+pnpm lint
+
+# 3. Verify TypeScript types strictly
+pnpm typecheck
+
+# 4. Run full unit test suite (107 tests, 100% offline, 0 cost)
+pnpm test
+
+# 5. Build production bundle (Turbopack + TypeScript checks)
+pnpm build
 ```
 
-### Human-Labeled Evaluation Benchmark (`getHumanLabeledEvaluationCases`)
+### Live Integration Tests (`pnpm test:live`)
 
-Defined in [`src/lib/matching/fixtures.ts`](src/lib/matching/fixtures.ts) and verified in [`tests/unit/kol-matching-engine.test.ts`](tests/unit/kol-matching-engine.test.ts):
+> ⚠️ **Cost Warning:** Running `pnpm test:live` sends actual requests to OpenAI and Apify and will incur small monetary charges against your account credits. Do not run in CI/CD environments.
 
-- `EVAL-01-RELEVANT-CREATOR`: `@zzdaozz` (`eligible`, `individual_creator`, `open_to_collab`, `relevant`)
-- `EVAL-02A-OFFICIAL-BRAND-ACCOUNT-REMO`: `@remo.thailand` (`excluded`, `brand_account` via `"ช่องบริษัท"`)
-- `EVAL-02B-OFFICIAL-BRAND-ACCOUNT-ETUDE`: `@etudethailand` (`excluded`, `brand_account` via `"ETUDE Thailand Official TikTok"`, `isAd=false`)
-- `EVAL-03-EXPLICIT-REVIEW-REFUSAL`: Creator with `"ไม่รับงานรีวิว"` bio (`excluded`, `restricted`)
-- `EVAL-04-UNCLEAR-THAI-MARKET-RELEVANCE`: `@honestglowup5` with Burmese `textLanguage="my"` (`needs_review`, `not_observed`)
-- `EVAL-05-MISSING-PERFORMANCE-METRICS`: Creator with `null` bio and missing view/like metrics (`needs_review`, `performanceFitScore: null`)
-
-> **Benchmark Caveat:** Matching 6 human-labeled reference cases verifies rule logic and schema invariants but does **not** establish statistical model accuracy. See [`docs/evaluation.md`](docs/evaluation.md) for how to expand the evaluation dataset.
-
-### Running One Controlled Live Evaluation
-
-1. Configure a valid `OPENAI_API_KEY` in `.env.local` and run `pnpm dev`.
-2. Open `http://localhost:3000`:
-   - Click **"Load Controlled Brand Fixture (Offline Preview)"** (or analyze a brand URL).
-   - In **Section 4 (Step 4 — AI TikTok KOL Matching & Ranking Engine)**:
-     - Keep `fixture_mock` selected to run offline at `0` API cost, **or**
-     - Select `live_ai` and set `Max Ranked Recommendations` to a small limit (e.g., `3` or `5`) before clicking **"Run Matching"** to execute a controlled live OpenAI evaluation.
+```bash
+pnpm test:live
+```
 
 ---
 
-## 10. Known Limitations, Potential Biases & Security Safeguards
+## 10. Known Limitations & Security Safeguards
 
-- **Single-Video Sample Limitation:** All 10 creators in the primary dataset have `1` sampled video. Performance Fit is capped by a `0.75x` provisional factor and `confidenceLevel` cannot exceed `"medium"`.
-- **Potential Ranking Biases:**
-  - **Caption Verbosity Bias:** Creators who write detailed Thai skincare captions (`@zzdaozz`, `@pchskinmood`) naturally receive higher Content Style scores than creators who post visual demos with 2-word captions (`@pim168889439`, `@nnampunnn`).
-  - **Search-Query Selection Bias:** The fixture was collected using the hashtag/query `"รีวิวสกินแคร์"`, favoring creators who explicitly use that tag.
-  - **Initial Heuristic Weights:** The `50/20/20/10` weights are transparent MVP defaults, not empirically calibrated on historical campaign ROI/GMV.
-- **Security & Cost Safeguards:** SSRF protection, `<untrusted_creator_data>` prompt-injection isolation, strict evidence `videoId`/`videoUrl` validation, `MAX_EVALUATED_CREATORS = 20` cap, and `ApifyPaidRunGuardError` preventing automatic paid Apify runs.
+### Known Limitations
+
+1. **Facebook Page Content Extraction:** Facebook / Meta public pages enforce aggressive anti-scraping walls and require user login. The extractor performs best-effort OpenGraph and meta tag scraping. When pages block automated fetch, the application alerts the user to provide a manual description.
+2. **Sample-Based TikTok Metrics:** To keep discovery fast and cost-controlled, the scraper analyzes sampled recent videos rather than complete account histories.
+3. **Absence of Native Audience Demographics:** Public TikTok web scraping does not return verified follower age, gender, or exact geographic distribution. Thai market relevance is inferred from text language, scripts, and hashtags.
+4. **Decision-Support Nature:** Match scores represent algorithmic positioning indicators, not a commercial guarantee of campaign conversion.
+
+### Security Safeguards
+
+- **SSRF Protection (`src/lib/brand/ssrf.ts`):** Prohibits user-supplied brand URLs from resolving to internal IPs (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`, cloud metadata endpoints `169.254.169.254`).
+- **Billing Controls (`src/lib/apify/tiktok-scraper.ts`):** Hard ceiling of $0.50 USD and 5 items per run to prevent unbounded billing spikes.
+- **Zero Client-Side Secret Leakage:** No API tokens are exposed in Next.js public bundles.
+
+---
+
+## 11. Troubleshooting
+
+| Symptom                                | Cause                                                              | Solution                                                                                     |
+| :------------------------------------- | :----------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **`pnpm: command not found`**          | Corepack is disabled on the host machine.                          | Run `corepack enable` then `corepack prepare pnpm@10.24.0 --activate`.                       |
+| **`Node.js version mismatch`**         | Host is running Node `< 20`.                                       | Upgrade Node.js to version `20.x` or `22.x LTS` via `nvm` or official installer.             |
+| **`OPENAI_CONFIGURATION_ERROR` (503)** | Missing or placeholder `OPENAI_API_KEY` in `.env.local`.           | Provide a valid OpenAI API key in `.env.local`, or test offline using the `/dev` test bench. |
+| **`MISSING_APIFY_TOKEN` (400)**        | Missing `APIFY_API_TOKEN` in `.env.local`.                         | Add your Apify API token in `.env.local` or rely on the automatic fallback dataset.          |
+| **`Port 3000 already in use`**         | Another process is occupying port 3000.                            | Run `pnpm dev -p 3001` to start on an alternative port.                                      |
+| **`Apify Actor run failed: HTTP 400`** | `maxTotalChargeUsd` was set below Apify's minimum allowed ($0.50). | This is already fixed in the current repository codebase (`$0.50` default).                  |
+| **`Facebook Page Data Unavailable`**   | Meta blocked automated scraping without active session cookies.    | Use the "Don't have a website" option on Step 1 to supply brand context manually.            |
+
+---
+
+## 12. Key Technical Decisions
+
+1. **Separation of Deterministic Rules and AI Evaluation:**
+   Language detection, account type classification (excluding brand stores like `@remo.thailand`), commercial availability detection (`"ไม่รับงานรีวิว"`), and score calculations are implemented as deterministic, auditable TypeScript code. The LLM is used strictly where it excels: semantic comprehension of creator content versus brand tone.
+2. **OpenAI Structured Outputs with Native Zod Schemas:**
+   Eliminates fragile JSON regex parsing or retries. All AI responses strictly conform to runtime Zod schemas.
+3. **Stateless In-Memory & Session Architecture:**
+   Avoids heavyweight database setup, allowing reviewers to clone and run the application in seconds without Docker or PostgreSQL migrations, while maintaining full user experience across browser sessions.
+4. **Strict Cost & Rate Limit Governance:**
+   Guards against accidental automated scraping loops, concurrent request spam, and duplicate charges using in-memory locks, 1-hour TTL caches, and Apify query-level billing limits.
+
+---
+
+_Authored for the Convert Cake AI Engineer Assessment submission._
